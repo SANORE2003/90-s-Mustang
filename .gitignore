@@ -1,0 +1,15 @@
+# Node.js
+frontend/node_modules
+frontend/build
+
+# Python / Flask
+backend/venv
+__pycache__
+Dashboart.txt
+Mustang.txt
+Parts.txt
+Rag Pipline.txt
+
+# System files
+.DS_Store
+.env

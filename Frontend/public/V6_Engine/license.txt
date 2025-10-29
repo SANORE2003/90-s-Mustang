@@ -1,0 +1,11 @@
+Model Information:
+* title:	Car Engine
+* source:	https://sketchfab.com/3d-models/car-engine-c85c6c4fbf9e43cf8a71d2280a841d29
+* author:	Davetheconqueror (https://sketchfab.com/Davetheconqueror)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Car Engine" (https://sketchfab.com/3d-models/car-engine-c85c6c4fbf9e43cf8a71d2280a841d29) by Davetheconqueror (https://sketchfab.com/Davetheconqueror) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
