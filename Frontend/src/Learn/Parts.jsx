@@ -1,5 +1,4 @@
 // Parts.jsx
-
 import React, { useState, useEffect, useRef } from "react";
 import { Canvas } from "@react-three/fiber";
 import { Environment, ContactShadows, OrbitControls } from "@react-three/drei";
@@ -16,10 +15,13 @@ import {
   Loader,
   Send,
   MessageCircle,
+  AlertTriangle,
 } from "lucide-react";
 import Car from "../Components/Car";
 import Gt from "../Components/Gt";
 import Mustang1968 from "../Components/Mustang1968";
+import V6_Engine from "../Components/V6_Engine";
+import V7_Engine from "../Components/V7_Engine";
 
 const CAR_INFO = {
   Car: {
@@ -57,23 +59,37 @@ const PART_ICONS = {
   Wheels: Circle,
 };
 
+const ENGINE_MODELS = {
+  V6: V6_Engine,
+  V7: V7_Engine,
+  // Add more as needed: V8: V8_Engine, etc.
+};
+
 const Parts = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [selectedPart, setSelectedPart] = useState(null);
   const [partsWithResponses, setPartsWithResponses] = useState([]);
   const [userQuestion, setUserQuestion] = useState("");
-  const [isInputActive, setIsInputActive] = useState(false); // New state
+  const [isInputActive, setIsInputActive] = useState(false);
+  const [isViewingDetailModel, setIsViewingDetailModel] = useState(false);
   const detailContentRef = useRef(null);
 
   const carName = location.state?.carName || "Car";
   const carInfo = CAR_INFO[carName] || CAR_INFO.Car;
   const CarComponent = CAR_COMPONENTS[carName] || Car;
 
+  // Car view settings
   const CAR_POSITION = [0, -1, 0];
   const CAR_ROTATION = [0, Math.PI / 4, 0];
   const CAR_SCALE = [1.8, 1.8, 1.8];
-  const CAMERA_POSITION = [5, 3, 5];
+  const CAMERA_POSITION_CAR = [5, 3, 5];
+
+  // Engine view settings (same for all engines for now)
+  const ENGINE_POSITION = [0, 0, 0];
+  const ENGINE_ROTATION = [0, 0, 0];
+  const ENGINE_SCALE = [1.2, 1.2, 1.2];
+  const CAMERA_POSITION_ENGINE = [2, 1, 2];
 
   const baseCarParts = [
     {
@@ -131,7 +147,8 @@ const Parts = () => {
     );
     setSelectedPart(null);
     setUserQuestion("");
-    setIsInputActive(false); // Reset input state when car changes
+    setIsInputActive(false);
+    setIsViewingDetailModel(false);
   }, [carName]);
 
   const sendQuestionToBackend = async (partId, question) => {
@@ -180,20 +197,30 @@ const Parts = () => {
       sendQuestionToBackend(part.id, part.question);
     }
     setUserQuestion("");
-    setIsInputActive(false); // Reset to button state
+    setIsInputActive(false);
+
+    // Allow 3D engine view only if we have a model for this engine type
+    if (part.name === "Engine" && ENGINE_MODELS[carInfo.engine]) {
+      setIsViewingDetailModel(true);
+    } else if (part.name === "Engine") {
+      setIsViewingDetailModel(false);
+    } else {
+      setIsViewingDetailModel(false);
+    }
   };
 
   const handleBackClick = () => {
     setSelectedPart(null);
     setUserQuestion("");
     setIsInputActive(false);
+    setIsViewingDetailModel(false);
   };
 
   const handleAskFollowUp = () => {
     if (!userQuestion.trim() || !selectedPart) return;
     sendQuestionToBackend(selectedPart.id, userQuestion);
     setUserQuestion("");
-    setIsInputActive(false); // Return to button after sending
+    setIsInputActive(false);
   };
 
   const getPartIcon = (partName) => PART_ICONS[partName] || Info;
@@ -201,6 +228,46 @@ const Parts = () => {
   const enrichedSelectedPart = selectedPart
     ? partsWithResponses.find((p) => p.id === selectedPart.id) || selectedPart
     : null;
+
+  // ✅ FIXED: Use ENGINE_MODELS dynamically
+  const render3DModel = () => {
+    if (isViewingDetailModel && selectedPart?.name === "Engine") {
+      const EngineModel = ENGINE_MODELS[carInfo.engine];
+      if (EngineModel) {
+        return (
+          <group
+            position={ENGINE_POSITION}
+            rotation={ENGINE_ROTATION}
+            scale={ENGINE_SCALE}
+          >
+            <EngineModel />
+          </group>
+        );
+      }
+    }
+
+    // Default: show full car
+    return (
+      <group
+        position={CAR_POSITION}
+        rotation={CAR_ROTATION}
+        scale={CAR_SCALE}
+      >
+        <CarComponent />
+      </group>
+    );
+  };
+
+  // ✅ FIXED: Camera position based on whether we're in engine view (any supported engine)
+  const cameraPosition = isViewingDetailModel && ENGINE_MODELS[carInfo.engine]
+    ? CAMERA_POSITION_ENGINE
+    : CAMERA_POSITION_CAR;
+
+  // ✅ FIXED: Show "not available" only if engine type has no model
+  const showEngineNotAvailable =
+    selectedPart?.name === "Engine" &&
+    !ENGINE_MODELS[carInfo.engine] &&
+    !isViewingDetailModel;
 
   return (
     <div className="w-screen h-screen relative overflow-hidden bg-gradient-to-br from-slate-950 via-blue-950 to-indigo-950">
@@ -239,10 +306,10 @@ const Parts = () => {
 
       {/* Main Content */}
       <div className="absolute inset-0 flex pt-32 pb-8 px-6 md:px-8 gap-6 md:gap-8">
-        {/* 3D Car Viewer */}
-        <div className="w-full md:w-2/3 h-full">
+        {/* 3D Viewer */}
+        <div className="w-full md:w-2/3 h-full relative">
           <div className="h-full rounded-2xl overflow-hidden border border-blue-500/20 bg-gradient-to-b from-black/30 to-black/50 backdrop-blur-lg shadow-2xl shadow-indigo-900/30">
-            <Canvas shadows camera={{ position: CAMERA_POSITION, fov: 50 }}>
+            <Canvas shadows camera={{ position: cameraPosition, fov: 50 }}>
               <ambientLight intensity={1.4} />
               <directionalLight
                 position={[5, 8, 5]}
@@ -271,13 +338,7 @@ const Parts = () => {
 
               <Environment preset="city" />
 
-              <group
-                position={CAR_POSITION}
-                rotation={CAR_ROTATION}
-                scale={CAR_SCALE}
-              >
-                <CarComponent />
-              </group>
+              {render3DModel()}
 
               <ContactShadows
                 position={[0, -1.5, 0]}
@@ -301,11 +362,26 @@ const Parts = () => {
                 enablePan={true}
                 enableZoom={true}
                 enableRotate={true}
-                minDistance={3}
-                maxDistance={12}
+                minDistance={isViewingDetailModel && ENGINE_MODELS[carInfo.engine] ? 0.8 : 3}
+                maxDistance={isViewingDetailModel && ENGINE_MODELS[carInfo.engine] ? 5 : 12}
                 maxPolarAngle={Math.PI / 2.2}
               />
             </Canvas>
+
+            {/* Overlay message when engine model is not available */}
+            {showEngineNotAvailable && (
+              <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm z-10">
+                <div className="text-center p-6 bg-gradient-to-br from-indigo-900/80 to-purple-900/80 border border-rose-500/40 rounded-xl max-w-md mx-4">
+                  <AlertTriangle className="w-12 h-12 text-rose-400 mx-auto mb-4" />
+                  <h3 className="text-xl font-bold text-white mb-2">
+                    {carInfo.engine} Engine Model Not Available
+                  </h3>
+                  <p className="text-rose-200/90">
+                    Detailed 3D model is not yet available for this engine type.
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
@@ -382,7 +458,6 @@ const Parts = () => {
 
                 {enrichedSelectedPart && (
                   <div className="flex-1 flex flex-col h-full">
-                    {/* Scrollable Content + Input/Button Inside Same Card */}
                     <div
                       ref={detailContentRef}
                       className="overflow-y-auto pr-2 custom-scrollbar"
@@ -415,7 +490,6 @@ const Parts = () => {
                           {enrichedSelectedPart.description}
                         </p>
 
-                        {/* AI Response Section */}
                         {enrichedSelectedPart.loading ? (
                           <div className="mb-6 p-4 bg-indigo-900/30 rounded-lg border border-cyan-500/20 flex items-center gap-3">
                             <Loader className="w-5 h-5 text-cyan-400 animate-spin" />
@@ -435,7 +509,6 @@ const Parts = () => {
                           </div>
                         ) : null}
 
-                        {/* Toggle between Button and Input in same position */}
                         <div className="pt-4 border-t border-cyan-500/20">
                           {isInputActive ? (
                             <div className="flex gap-2">
