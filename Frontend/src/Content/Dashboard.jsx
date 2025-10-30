@@ -92,7 +92,7 @@ export default function Dashboard() {
       componentName: "Mustang1968", // Added for Parts.jsx mapping
       name: "Mustang 1968",
       model: "1968",
-      engine: "V6",
+      engine: "V8",
       speed: "190mph",
       position: [5, -3.5, 0],
       rotation: [0, -1.5, 0],

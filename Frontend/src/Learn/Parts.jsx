@@ -1,7 +1,12 @@
 // Parts.jsx
+import * as THREE from "three";
 import React, { useState, useEffect, useRef } from "react";
-import { Canvas } from "@react-three/fiber";
-import { Environment, ContactShadows, OrbitControls } from "@react-three/drei";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import {
+  Environment,
+  ContactShadows,
+  OrbitControls as DreiOrbitControls,
+} from "@react-three/drei";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
   ArrowLeft,
@@ -22,6 +27,7 @@ import Gt from "../Components/Gt";
 import Mustang1968 from "../Components/Mustang1968";
 import V6_Engine from "../Components/V6_Engine";
 import V7_Engine from "../Components/V7_Engine";
+import V8_Engine from "../Components/V8_Engine"; // ✅ V8 Support
 
 const CAR_INFO = {
   Car: {
@@ -39,7 +45,7 @@ const CAR_INFO = {
   Mustang1968: {
     name: "Mustang 1968",
     model: "1968",
-    engine: "V6",
+    engine: "V8", // ✅ Using V8
     speed: "190mph",
   },
 };
@@ -62,8 +68,51 @@ const PART_ICONS = {
 const ENGINE_MODELS = {
   V6: V6_Engine,
   V7: V7_Engine,
-  // Add more as needed: V8: V8_Engine, etc.
+  V8: V8_Engine, // ✅ Registered
 };
+
+// 🔧 Custom OrbitControls — dynamic zoom limits based on engine type
+function CustomOrbitControls({ isEngineView, engineType }) {
+  const { camera, gl } = useThree();
+
+  // Adjust max zoom-out distance per engine
+  let maxDist = isEngineView ? 20 : 12;
+  if (isEngineView && engineType === "V8") {
+    maxDist = 200; // Allow more zoom-out for larger V8
+  }
+
+  return (
+    <DreiOrbitControls
+      args={[camera, gl.domElement]}
+      enableDamping={true}
+      dampingFactor={0.05}
+      enablePan={true}
+      minDistance={isEngineView ? 2 : 3}
+      maxDistance={maxDist}
+      minPolarAngle={0.3}
+      maxPolarAngle={1.6}
+      autoRotate={false}
+      target={[0, isEngineView ? 0 : 1, 0]}
+    />
+  );
+}
+
+// 🔧 Auto-center engine model on load
+function CenteredEngineModel({ children }) {
+  const groupRef = useRef();
+
+  useFrame(() => {
+    if (groupRef.current) {
+      const box = new THREE.Box3().setFromObject(groupRef.current);
+      const center = new THREE.Vector3();
+      box.getCenter(center);
+      groupRef.current.position.sub(center);
+      groupRef.current.position.y += 1.05;
+    }
+  });
+
+  return <group ref={groupRef}>{children}</group>;
+}
 
 const Parts = () => {
   const navigate = useNavigate();
@@ -73,7 +122,6 @@ const Parts = () => {
   const [userQuestion, setUserQuestion] = useState("");
   const [isInputActive, setIsInputActive] = useState(false);
   const [isViewingDetailModel, setIsViewingDetailModel] = useState(false);
-  const detailContentRef = useRef(null);
 
   const carName = location.state?.carName || "Car";
   const carInfo = CAR_INFO[carName] || CAR_INFO.Car;
@@ -85,11 +133,25 @@ const Parts = () => {
   const CAR_SCALE = [1.8, 1.8, 1.8];
   const CAMERA_POSITION_CAR = [5, 3, 5];
 
-  // Engine view settings (same for all engines for now)
-  const ENGINE_POSITION = [0, 0, 0];
-  const ENGINE_ROTATION = [0, 0, 0];
+  // 🔥 Enhanced camera position for V8 engine
+  const getEngineCameraPosition = () => {
+    if (carInfo.engine === "V8") {
+      return [6, 6, 30]; // pulled back significantly for full V8 view
+    }
+    return [6, 5, 12]; // default for V6/V7
+  };
+
+  // REMOVE: const ENGINE_SCALE = [1.2, 1.2, 1.2];
+
+  // ADD:
+  const getEngineScale = () => {
+    if (carInfo.engine === "V8") {
+      return [0.2, 0.2, 0.2]; // adjust as needed
+    }
+    return [2.5, 2.5, 2.5];
+  };
+
   const ENGINE_SCALE = [1.2, 1.2, 1.2];
-  const CAMERA_POSITION_ENGINE = [2, 1, 2];
 
   const baseCarParts = [
     {
@@ -169,8 +231,6 @@ const Parts = () => {
       if (response.ok) {
         const data = await response.json();
         aiResponse = data.answer || data.response || "Answer not available.";
-      } else {
-        console.error("Backend returned error:", response.status);
       }
 
       setPartsWithResponses((prev) =>
@@ -199,11 +259,8 @@ const Parts = () => {
     setUserQuestion("");
     setIsInputActive(false);
 
-    // Allow 3D engine view only if we have a model for this engine type
     if (part.name === "Engine" && ENGINE_MODELS[carInfo.engine]) {
       setIsViewingDetailModel(true);
-    } else if (part.name === "Engine") {
-      setIsViewingDetailModel(false);
     } else {
       setIsViewingDetailModel(false);
     }
@@ -229,45 +286,36 @@ const Parts = () => {
     ? partsWithResponses.find((p) => p.id === selectedPart.id) || selectedPart
     : null;
 
-  // ✅ FIXED: Use ENGINE_MODELS dynamically
   const render3DModel = () => {
     if (isViewingDetailModel && selectedPart?.name === "Engine") {
       const EngineModel = ENGINE_MODELS[carInfo.engine];
       if (EngineModel) {
         return (
-          <group
-            position={ENGINE_POSITION}
-            rotation={ENGINE_ROTATION}
-            scale={ENGINE_SCALE}
-          >
-            <EngineModel />
-          </group>
+          <CenteredEngineModel>
+            <EngineModel scale={getEngineScale()} />
+          </CenteredEngineModel>
         );
       }
     }
 
-    // Default: show full car
     return (
-      <group
-        position={CAR_POSITION}
-        rotation={CAR_ROTATION}
-        scale={CAR_SCALE}
-      >
+      <group position={CAR_POSITION} rotation={CAR_ROTATION} scale={CAR_SCALE}>
         <CarComponent />
       </group>
     );
   };
 
-  // ✅ FIXED: Camera position based on whether we're in engine view (any supported engine)
-  const cameraPosition = isViewingDetailModel && ENGINE_MODELS[carInfo.engine]
-    ? CAMERA_POSITION_ENGINE
-    : CAMERA_POSITION_CAR;
+  const cameraPosition =
+    isViewingDetailModel && ENGINE_MODELS[carInfo.engine]
+      ? getEngineCameraPosition()
+      : CAMERA_POSITION_CAR;
 
-  // ✅ FIXED: Show "not available" only if engine type has no model
   const showEngineNotAvailable =
     selectedPart?.name === "Engine" &&
     !ENGINE_MODELS[carInfo.engine] &&
     !isViewingDetailModel;
+
+  const isEngineView = isViewingDetailModel && ENGINE_MODELS[carInfo.engine];
 
   return (
     <div className="w-screen h-screen relative overflow-hidden bg-gradient-to-br from-slate-950 via-blue-950 to-indigo-950">
@@ -314,7 +362,6 @@ const Parts = () => {
               <directionalLight
                 position={[5, 8, 5]}
                 intensity={2.2}
-                color="#ffffff"
                 castShadow
                 shadow-mapSize={[2048, 2048]}
               />
@@ -358,17 +405,12 @@ const Parts = () => {
                 <shadowMaterial opacity={0.2} />
               </mesh>
 
-              <OrbitControls
-                enablePan={true}
-                enableZoom={true}
-                enableRotate={true}
-                minDistance={isViewingDetailModel && ENGINE_MODELS[carInfo.engine] ? 0.8 : 3}
-                maxDistance={isViewingDetailModel && ENGINE_MODELS[carInfo.engine] ? 5 : 12}
-                maxPolarAngle={Math.PI / 2.2}
+              <CustomOrbitControls
+                isEngineView={isEngineView}
+                engineType={carInfo.engine}
               />
             </Canvas>
 
-            {/* Overlay message when engine model is not available */}
             {showEngineNotAvailable && (
               <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm z-10">
                 <div className="text-center p-6 bg-gradient-to-br from-indigo-900/80 to-purple-900/80 border border-rose-500/40 rounded-xl max-w-md mx-4">
@@ -459,7 +501,6 @@ const Parts = () => {
                 {enrichedSelectedPart && (
                   <div className="flex-1 flex flex-col h-full">
                     <div
-                      ref={detailContentRef}
                       className="overflow-y-auto pr-2 custom-scrollbar"
                       style={{
                         maxHeight: "calc(100vh - 260px)",
