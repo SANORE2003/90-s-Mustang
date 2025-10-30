@@ -27,7 +27,7 @@ import Gt from "../Components/Gt";
 import Mustang1968 from "../Components/Mustang1968";
 import V6_Engine from "../Components/V6_Engine";
 import V7_Engine from "../Components/V7_Engine";
-import V8_Engine from "../Components/V8_Engine"; // ✅ V8 Support
+import V8_Engine from "../Components/V8_Engine"; 
 
 const CAR_INFO = {
   Car: {
@@ -45,7 +45,7 @@ const CAR_INFO = {
   Mustang1968: {
     name: "Mustang 1968",
     model: "1968",
-    engine: "V8", // ✅ Using V8
+    engine: "V8", 
     speed: "190mph",
   },
 };
@@ -68,7 +68,7 @@ const PART_ICONS = {
 const ENGINE_MODELS = {
   V6: V6_Engine,
   V7: V7_Engine,
-  V8: V8_Engine, // ✅ Registered
+  V8: V8_Engine, 
 };
 
 // 🔧 Custom OrbitControls — dynamic zoom limits based on engine type
@@ -77,8 +77,9 @@ function CustomOrbitControls({ isEngineView, engineType }) {
 
   // Adjust max zoom-out distance per engine
   let maxDist = isEngineView ? 20 : 12;
-  if (isEngineView && engineType === "V8") {
-    maxDist = 200; // Allow more zoom-out for larger V8
+  // Apply enhanced zoom-out to both V7 and V8
+  if (isEngineView && (engineType === "V7" || engineType === "V8")) {
+    maxDist = 100;
   }
 
   return (
@@ -151,7 +152,7 @@ const Parts = () => {
     return [2.5, 2.5, 2.5];
   };
 
-  const ENGINE_SCALE = [1.2, 1.2, 1.2];
+  // const ENGINE_SCALE = [1.2, 1.2, 1.2];
 
   const baseCarParts = [
     {
