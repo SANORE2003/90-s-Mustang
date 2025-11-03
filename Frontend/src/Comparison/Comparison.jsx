@@ -10,11 +10,9 @@ import { useNavigate } from "react-router-dom";
 import Car from "../Components/Car";
 import Gt from "../Components/Gt";
 import Mustang1968 from "../Components/Mustang1968";
+import EngineDetailView from "../Learn/EngineDetail/EngineDetailView";
+import BrakeDetailView from "../Learn/BrakeDetail/BrakeDetailView";
 import logoGif from "../assets/wheelwithwings.gif";
-
-// ======================
-// Data Definitions
-// ======================
 
 const CAR_INFO = {
   Car: {
@@ -49,12 +47,33 @@ const CAR_COMPONENTS = {
   Mustang1968,
 };
 
-// ======================
-// 3D Scene Component
-// ======================
 
-const CarScene = ({ carKey }) => {
+const CarScene = ({ carKey, selectedPart }) => {
   const CarComponent = CAR_COMPONENTS[carKey] || Car;
+  const carInfo = CAR_INFO[carKey] || CAR_INFO.Car;
+
+  // Determine which detail view to show
+  const renderDetail = () => {
+    if (!selectedPart) return null;
+    
+    switch (selectedPart.toLowerCase()) {
+      case "engine":
+        return <EngineDetailView engineType={carInfo.engine} />;
+      case "brakes":
+        return <BrakeDetailView brakeType={carInfo.brake} />;
+      default:
+        // Placeholder for other parts (transmission, suspension, etc.)
+        return (
+          <group position={[0, 0, 0]} scale={[2, 2, 2]}>
+            <mesh>
+              <boxGeometry args={[1, 1, 1]} />
+              <meshStandardMaterial color="#ff6b6b" />
+            </mesh>
+          </group>
+        );
+    }
+  };
+
   return (
     <>
       <ambientLight intensity={1.4} />
@@ -63,9 +82,15 @@ const CarScene = ({ carKey }) => {
       <directionalLight position={[0, 2, -8]} intensity={1} color="#b190f6" />
       <spotLight position={[0, 10, 0]} angle={0.5} penumbra={1} intensity={1.5} castShadow />
       <Environment preset="city" />
-      <group position={[0, -1, 0]} rotation={[0, Math.PI / 4, 0]} scale={[1.8, 1.8, 1.8]}>
-        <CarComponent />
-      </group>
+      
+      {selectedPart ? (
+        renderDetail()
+      ) : (
+        <group position={[0, -1, 0]} rotation={[0, Math.PI / 4, 0]} scale={[1.8, 1.8, 1.8]}>
+          <CarComponent />
+        </group>
+      )}
+      
       <ContactShadows position={[0, -1.5, 0]} opacity={0.4} scale={10} blur={2} far={5} color="#000000" />
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -1.51, 0]} receiveShadow>
         <planeGeometry args={[30, 30]} />
@@ -74,11 +99,11 @@ const CarScene = ({ carKey }) => {
       <DreiOrbitControls
         enableDamping
         dampingFactor={0.05}
-        minDistance={3}
-        maxDistance={12}
+        minDistance={selectedPart ? 1.5 : 3}
+        maxDistance={selectedPart ? (["V7", "V8"].includes(carInfo.engine) ? 100 : 20) : 12}
         minPolarAngle={0.3}
         maxPolarAngle={1.6}
-        target={[0, 1, 0]}
+        target={[0, selectedPart ? 0 : 1, 0]}
       />
     </>
   );
@@ -120,6 +145,7 @@ const Comparison = () => {
   const navigate = useNavigate();
   const [carA, setCarA] = useState("");
   const [carB, setCarB] = useState("");
+  const [selectedPart, setSelectedPart] = useState(null); // Common for both cars
   const allCars = Object.keys(CAR_INFO);
   const [aiComparison, setAiComparison] = useState("");
 
@@ -137,6 +163,21 @@ const Comparison = () => {
 
   const handleCarAChange = (e) => setCarA(e.target.value);
   const handleCarBChange = (e) => setCarB(e.target.value);
+
+  // Part buttons configuration
+  const PARTS = [
+    { id: "engine", name: "Engine" },
+    { id: "transmission", name: "Transmission" },
+    { id: "suspension", name: "Suspension" },
+    { id: "brakes", name: "Brakes" },
+    { id: "exhaust", name: "Exhaust" },
+    { id: "wheels", name: "Wheels" },
+  ];
+
+  const handlePartClick = (partId) => {
+    // Toggle: if already selected, show full car again
+    setSelectedPart(selectedPart === partId ? null : partId);
+  };
 
   return (
     <div className="w-screen h-screen relative overflow-hidden bg-gradient-to-br from-slate-950 via-blue-950 to-indigo-950">
@@ -181,7 +222,7 @@ const Comparison = () => {
           <div className="flex-1 rounded-2xl overflow-hidden border border-blue-500/20 bg-gradient-to-b from-black/30 to-black/50 backdrop-blur-lg shadow-2xl shadow-indigo-900/30 h-[320px] md:h-[400px]">
             {carA ? (
               <Canvas shadows camera={{ position: [5, 3, 5], fov: 50 }}>
-                <CarScene carKey={carA} />
+                <CarScene carKey={carA} selectedPart={selectedPart} />
               </Canvas>
             ) : (
               <div className="w-full h-full flex items-center justify-center text-center p-4">
@@ -192,7 +233,7 @@ const Comparison = () => {
           <div className="flex-1 rounded-2xl overflow-hidden border border-purple-500/20 bg-gradient-to-b from-black/30 to-black/50 backdrop-blur-lg shadow-2xl shadow-purple-900/30 h-[320px] md:h-[400px]">
             {carB ? (
               <Canvas shadows camera={{ position: [5, 3, 5], fov: 50 }}>
-                <CarScene carKey={carB} />
+                <CarScene carKey={carB} selectedPart={selectedPart} />
               </Canvas>
             ) : (
               <div className="w-full h-full flex items-center justify-center text-center p-4">
@@ -200,6 +241,23 @@ const Comparison = () => {
               </div>
             )}
           </div>
+        </div>
+
+        {/* Part Buttons - Common for both cars */}
+        <div className="flex flex-wrap justify-center gap-2 px-2">
+          {PARTS.map((part) => (
+            <button
+              key={part.id}
+              onClick={() => handlePartClick(part.id)}
+              className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-all ${
+                selectedPart === part.id
+                  ? "bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg"
+                  : "bg-white/10 text-orange-200 hover:bg-white/20"
+              }`}
+            >
+              {part.name}
+            </button>
+          ))}
         </div>
 
         {/* Dropdown Selectors */}
