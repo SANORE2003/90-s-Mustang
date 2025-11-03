@@ -136,6 +136,13 @@ const handlePartsClick = () => {
   });
 };
 
+const handleComparisonClick = () => {
+  navigate("/comparison", {
+    state: {
+      carName: cars[currentIndex].componentName,
+    },
+  });
+}
   return (
     <div className="w-screen h-screen relative overflow-hidden">
       {/* Background Gradient */}
@@ -221,7 +228,12 @@ const handlePartsClick = () => {
           Parts
         </button>
       </div>
-
+      <button 
+          onClick={handleComparisonClick}
+          className="absolute bottom-20 left-8 z-30 bg-yellow-600/40 hover:bg-yellow-600/60 backdrop-blur-sm border border-yellow-400/50 rounded-full px-6 py-3 text-white font-bold transition-all duration-300 hover:scale-110 flex items-center gap-2"
+        >
+          Comparison
+        </button>
       {/* Car Info Texts */}
       <div className="absolute top-[15%] left-[5%] z-50 pointer-events-none w-full">
         {cars.map((car, index) => {

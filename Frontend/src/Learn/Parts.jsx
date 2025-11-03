@@ -308,11 +308,10 @@ const Parts = () => {
         </button>
       </div>
       <div className="text-center flex flex-col items-center justify-center">
-        <h1 className="text-4xl md:text-5
-        xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-blue-300 to-purple-300">
+        <h1 className="absolute top-[2%] left-[15%] text-7xl md:text-7xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-blue-300 to-purple-300">
           {carInfo.name}
         </h1>
-        <p className="text-blue-200/90 text-lg mt-1 tracking-wide">
+        <p className="absolute top-[9%] left-[38%] text-blue-200/90 text-xl mt-1 tracking-wide">
           Model: <span className="font-medium">{carInfo.model}</span> • Engine:{" "}
           <span className="font-medium">{carInfo.engine}</span> • Top Speed:{" "}
           <span className="font-medium">{carInfo.speed}</span>

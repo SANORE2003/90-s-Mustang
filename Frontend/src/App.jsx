@@ -8,6 +8,7 @@ import Dashboard from "./Content/Dashboard";
 import Speedometer from "./Content/Speedometer";
 import SharedCar from "./main/SharedCar"; // ✅ SharedCar now handles overlay internally
 import Parts from "./Learn/Parts";
+import Comparison from "./Comparison/Comparison";
 
 export default function App() {
   return (
@@ -33,6 +34,7 @@ export default function App() {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/speedometer" element={<Speedometer />} />
         <Route path="/parts" element={<Parts />} />
+        <Route path="/comparison" element={<Comparison />} />
       </Routes>
     </Router>
   );
