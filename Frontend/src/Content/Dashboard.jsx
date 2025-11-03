@@ -1,5 +1,5 @@
-// Dashboard.jsx - Updated with Learn button that passes car data
-import React, { useState, useEffect, useCallback } from "react";
+// Dashboard.jsx - Updated with Learn button that passes car data and plays ignition sound
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { ChevronLeft, ChevronRight, Gauge } from "lucide-react";
 import { Canvas } from "@react-three/fiber";
 import { Environment, ContactShadows } from "@react-three/drei";
@@ -7,6 +7,7 @@ import { useNavigate } from "react-router-dom";
 import Car from "../Components/Car";
 import Gt from "../Components/Gt";
 import Mustang1968 from "../Components/Mustang1968";
+import audioFile from "../assets/Ignition.mp3"; 
 
 // Individual Canvas Component for each car
 const CarCanvas = ({ car }) => {
@@ -62,10 +63,11 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const [currentIndex, setCurrentIndex] = useState(0);
 
+
   const cars = [
     {
       component: Car,
-      componentName: "Car", // Added for Parts.jsx mapping
+      componentName: "Car",
       name: "Classic Car",
       model: "1965",
       engine: "V6",
@@ -77,7 +79,7 @@ export default function Dashboard() {
     },
     {
       component: Gt,
-      componentName: "Gt", // Added for Parts.jsx mapping
+      componentName: "Gt",
       name: "GT Sports",
       model: "1967",
       engine: "V7",
@@ -89,7 +91,7 @@ export default function Dashboard() {
     },
     {
       component: Mustang1968,
-      componentName: "Mustang1968", // Added for Parts.jsx mapping
+      componentName: "Mustang1968",
       name: "Mustang 1968",
       model: "1968",
       engine: "V8",
@@ -109,7 +111,7 @@ export default function Dashboard() {
     setCurrentIndex((prev) => (prev - 1 + cars.length) % cars.length);
   }, [cars.length]);
 
-  // ✅ Keyboard Controls (Left & Right Arrow Keys)
+  // Keyboard Controls
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === "ArrowRight") nextCar();
@@ -119,15 +121,20 @@ export default function Dashboard() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [nextCar, prevCar]);
 
-  // ✅ Function to navigate to Parts page with selected car
- // ✅ Navigate to Parts with only carName
-  const handlePartsClick = () => {
-    navigate("/parts", {
-      state: {
-        carName: cars[currentIndex].componentName,
-      },
-    });
-  };
+  // Handle Parts button click
+const handlePartsClick = () => {
+  // ✅ Play sound immediately in response to user click
+  const audio = new Audio(audioFile);
+  audio.play().catch((e) => {
+    console.warn("Ignition sound failed to play:", e);
+  });
+
+  navigate("/parts", {
+    state: {
+      carName: cars[currentIndex].componentName,
+    },
+  });
+};
 
   return (
     <div className="w-screen h-screen relative overflow-hidden">
@@ -206,7 +213,7 @@ export default function Dashboard() {
           Speedometer
         </button>
 
-        {/* Learn Button - UPDATED to pass car data */}
+        {/* Parts Button with Sound */}
         <button 
           onClick={handlePartsClick}
           className="absolute bottom-20 right-8 z-30 bg-purple-600/40 hover:bg-purple-600/60 backdrop-blur-sm border border-purple-400/50 rounded-full px-6 py-3 text-white font-bold transition-all duration-300 hover:scale-110 flex items-center gap-2"

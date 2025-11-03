@@ -1,9 +1,10 @@
 import React, { useState } from "react";
 import { Lock, Mail, User, ArrowRight } from "lucide-react";
-import { useNavigate } from "react-router-dom"; // ✅ import navigation
+import { useNavigate } from "react-router-dom";
+import logoGif from "../assets/wheelwithwings.gif";
 
 export default function Home() {
-  const navigate = useNavigate(); // ✅ initialize navigator
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("signin");
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
@@ -31,7 +32,6 @@ export default function Home() {
     setSuccessMessage("");
   };
 
-  // ✅ Signup handler
   const handleSignup = async (e) => {
     e.preventDefault();
     setErrorMessage("");
@@ -49,12 +49,13 @@ export default function Home() {
         setSuccessMessage("🏁 Let's Drive! Registration successful.");
         setSignupData({ name: "", email: "", password: "" });
 
-        // ✅ Redirect after short delay
         setTimeout(() => {
           navigate("/dashboard");
         }, 1000);
       } else {
-        setErrorMessage("🔄 Try Again! " + (data.error || "Registration failed"));
+        setErrorMessage(
+          "🔄 Try Again! " + (data.error || "Registration failed")
+        );
       }
     } catch (err) {
       console.error(err);
@@ -62,7 +63,6 @@ export default function Home() {
     }
   };
 
-  // ✅ Signin handler
   const handleSignin = async (e) => {
     e.preventDefault();
     setErrorMessage("");
@@ -80,12 +80,13 @@ export default function Home() {
         setSuccessMessage("🏁 Let's Drive! Login successful.");
         setSigninData({ email: "", password: "" });
 
-        // ✅ Redirect after success
         setTimeout(() => {
           navigate("/dashboard");
         }, 1000);
       } else {
-        setErrorMessage("🔄 Try Again! " + (data.error || "Invalid credentials"));
+        setErrorMessage(
+          "🔄 Try Again! " + (data.error || "Invalid credentials")
+        );
       }
     } catch (err) {
       console.error(err);
@@ -102,7 +103,6 @@ export default function Home() {
           className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-600/20 rounded-full blur-3xl animate-pulse"
           style={{ animationDelay: "1s" }}
         />
-        {/* Grid pattern */}
         <div
           className="absolute inset-0 opacity-10"
           style={{
@@ -113,16 +113,21 @@ export default function Home() {
             backgroundSize: "50px 50px",
           }}
         />
-        {/* Gradient layers */}
         <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-blue-500/10 to-transparent" />
         <div className="absolute inset-0 bg-gradient-to-bl from-transparent via-purple-500/10 to-transparent" />
       </div>
 
       {/* Main layout */}
       <div className="absolute inset-0 z-20 flex flex-col md:flex-row items-center justify-between px-12 md:px-24 py-12 gap-12">
+        {/* Top-right logo — now correctly positioned relative to the whole screen */}
+        <img
+          src={logoGif}
+          alt="Mustang Logo"
+          className="absolute top-2 right-8 w-40 h-40 object-contain z-30 drop-shadow-[0_0_20px_rgba(59,130,246,0.8)] hover:scale-125 transition-transform duration-500"
+        />
         {/* Auth Panel */}
         <div className="w-full max-w-md backdrop-blur-xl bg-slate-900/40 rounded-2xl border border-blue-500/20 shadow-2xl p-8">
-          {/* Logo */}
+          {/* Logo text */}
           <div className="mb-8">
             <h1 className="text-4xl font-bold text-white mb-2 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
               MUSTANG
@@ -176,7 +181,6 @@ export default function Home() {
 
           {/* Forms */}
           {activeTab === "signin" ? (
-            // --- Sign In Form ---
             <form onSubmit={handleSignin} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-slate-300 mb-2">
@@ -223,7 +227,6 @@ export default function Home() {
               </button>
             </form>
           ) : (
-            // --- Sign Up Form ---
             <form onSubmit={handleSignup} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-slate-300 mb-2">
@@ -292,13 +295,13 @@ export default function Home() {
 
         {/* Right side: Car and Text */}
         <div className="flex flex-col items-center justify-center text-center md:text-left md:items-start w-full md:w-1/2 space-y-6 relative">
-          {/* Decorative background card */}
           <div className="absolute -inset-4 bg-gradient-to-br from-blue-900/30 via-purple-900/30 to-slate-900/20 rounded-3xl shadow-2xl blur-xl -z-10 animate-pulse-slow"></div>
 
-          {/* Main content */}
           <div className="ml-40 md:ml-56 max-w-md text-slate-300 text-lg leading-relaxed space-y-4 p-6 bg-slate-900/50 rounded-2xl border border-blue-500/30 shadow-lg backdrop-blur-lg">
             <p className="text-white font-medium">
-              Explore car features with the chatbot—engine performance, interior design, safety, and innovative technologies—while getting instant answers and learning how each component works.
+              Explore car features with the chatbot—engine performance, interior
+              design, safety, and innovative technologies—while getting instant
+              answers and learning how each component works.
             </p>
 
             <p className="font-semibold text-white text-xl border-l-4 border-blue-400 pl-2">
@@ -306,25 +309,35 @@ export default function Home() {
             </p>
             <ul className="list-disc list-inside space-y-2 text-slate-200">
               <li>
-                <span className="text-blue-400 font-medium">Interactive Learning:</span>{" "}
-                Dive into aerodynamics, suspension systems, and engine performance with easy explanations.
+                <span className="text-blue-400 font-medium">
+                  Interactive Learning:
+                </span>{" "}
+                Dive into aerodynamics, suspension systems, and engine
+                performance with easy explanations.
               </li>
               <li>
-                <span className="text-purple-400 font-medium">Detailed Insights:</span>{" "}
-                Explore safety features, infotainment systems, and design elements of each Mustang model.
+                <span className="text-purple-400 font-medium">
+                  Detailed Insights:
+                </span>{" "}
+                Explore safety features, infotainment systems, and design
+                elements of each Mustang model.
               </li>
               <li>
-                <span className="text-teal-400 font-medium">Virtual Demonstrations:</span>{" "}
-                See engine functions, brake systems, and driving dynamics in action through the chatbot.
+                <span className="text-teal-400 font-medium">
+                  Virtual Demonstrations:
+                </span>{" "}
+                See engine functions, brake systems, and driving dynamics in
+                action through the chatbot.
               </li>
             </ul>
 
             <p className="text-slate-100 italic border-t border-slate-700 pt-3 mt-4">
-              Whether you're a car enthusiast or just curious, the chatbot guides you through the Mustang's history, rare editions, specs, and maintenance tips.
+              Whether you're a car enthusiast or just curious, the chatbot
+              guides you through the Mustang's history, rare editions, specs,
+              and maintenance tips.
             </p>
           </div>
 
-          {/* Optional decorative floating dots */}
           <div className="absolute bottom-4 right-4 w-3 h-3 bg-purple-400 rounded-full animate-bounce-slow"></div>
         </div>
       </div>

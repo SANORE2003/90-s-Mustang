@@ -1,7 +1,5 @@
-// Parts.jsx
-import * as THREE from "three";
-import React, { useState, useEffect, useRef } from "react";
-import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import React, { useState, useEffect } from "react";
+import { Canvas, useThree } from "@react-three/fiber";
 import {
   Environment,
   ContactShadows,
@@ -25,9 +23,9 @@ import {
 import Car from "../Components/Car";
 import Gt from "../Components/Gt";
 import Mustang1968 from "../Components/Mustang1968";
-import V6_Engine from "../Components/V6_Engine";
-import V7_Engine from "../Components/V7_Engine";
-import V8_Engine from "../Components/V8_Engine"; 
+import EngineDetailView from "./EngineDetail/EngineDetailView";
+import BrakeDetailView from "./BrakeDetail/BrakeDetailView";
+import logoGif from "../assets/wheelwithwings.gif";
 
 const CAR_INFO = {
   Car: {
@@ -35,18 +33,21 @@ const CAR_INFO = {
     model: "1965",
     engine: "V6",
     speed: "150mph",
+    brake: "BRAKE1",
   },
   Gt: {
     name: "GT Sports",
     model: "1967",
     engine: "V7",
     speed: "180mph",
+    brake: "BRAKE1",
   },
   Mustang1968: {
     name: "Mustang 1968",
     model: "1968",
-    engine: "V8", 
+    engine: "V8",
     speed: "190mph",
+    brake: "BRAKE1",
   },
 };
 
@@ -65,21 +66,24 @@ const PART_ICONS = {
   Wheels: Circle,
 };
 
-const ENGINE_MODELS = {
-  V6: V6_Engine,
-  V7: V7_Engine,
-  V8: V8_Engine, 
-};
-
-// 🔧 Custom OrbitControls — dynamic zoom limits based on engine type
-function CustomOrbitControls({ isEngineView, engineType }) {
+// 🔧 Custom OrbitControls — dynamic zoom limits based on view
+function CustomOrbitControls({ isDetailView, detailType, engineType }) {
   const { camera, gl } = useThree();
 
-  // Adjust max zoom-out distance per engine
-  let maxDist = isEngineView ? 20 : 12;
-  // Apply enhanced zoom-out to both V7 and V8
-  if (isEngineView && (engineType === "V7" || engineType === "V8")) {
-    maxDist = 100;
+  let maxDist = 12;
+  let minDist = 3;
+  let targetY = 1;
+
+  if (isDetailView) {
+    if (detailType === "engine") {
+      maxDist = engineType === "V7" || engineType === "V8" ? 100 : 20;
+      minDist = 2;
+      targetY = 0;
+    } else if (detailType === "brake") {
+      maxDist = 15;
+      minDist = 1.5;
+      targetY = 0;
+    }
   }
 
   return (
@@ -88,31 +92,14 @@ function CustomOrbitControls({ isEngineView, engineType }) {
       enableDamping={true}
       dampingFactor={0.05}
       enablePan={true}
-      minDistance={isEngineView ? 2 : 3}
+      minDistance={minDist}
       maxDistance={maxDist}
       minPolarAngle={0.3}
       maxPolarAngle={1.6}
       autoRotate={false}
-      target={[0, isEngineView ? 0 : 1, 0]}
+      target={[0, targetY, 0]}
     />
   );
-}
-
-// 🔧 Auto-center engine model on load
-function CenteredEngineModel({ children }) {
-  const groupRef = useRef();
-
-  useFrame(() => {
-    if (groupRef.current) {
-      const box = new THREE.Box3().setFromObject(groupRef.current);
-      const center = new THREE.Vector3();
-      box.getCenter(center);
-      groupRef.current.position.sub(center);
-      groupRef.current.position.y += 1.05;
-    }
-  });
-
-  return <group ref={groupRef}>{children}</group>;
 }
 
 const Parts = () => {
@@ -123,6 +110,7 @@ const Parts = () => {
   const [userQuestion, setUserQuestion] = useState("");
   const [isInputActive, setIsInputActive] = useState(false);
   const [isViewingDetailModel, setIsViewingDetailModel] = useState(false);
+  const [detailViewType, setDetailViewType] = useState(null); // 'engine' or 'brake'
 
   const carName = location.state?.carName || "Car";
   const carInfo = CAR_INFO[carName] || CAR_INFO.Car;
@@ -133,26 +121,6 @@ const Parts = () => {
   const CAR_ROTATION = [0, Math.PI / 4, 0];
   const CAR_SCALE = [1.8, 1.8, 1.8];
   const CAMERA_POSITION_CAR = [5, 3, 5];
-
-  // 🔥 Enhanced camera position for V8 engine
-  const getEngineCameraPosition = () => {
-    if (carInfo.engine === "V8") {
-      return [6, 6, 30]; // pulled back significantly for full V8 view
-    }
-    return [6, 5, 12]; // default for V6/V7
-  };
-
-  // REMOVE: const ENGINE_SCALE = [1.2, 1.2, 1.2];
-
-  // ADD:
-  const getEngineScale = () => {
-    if (carInfo.engine === "V8") {
-      return [0.2, 0.2, 0.2]; // adjust as needed
-    }
-    return [2.5, 2.5, 2.5];
-  };
-
-  // const ENGINE_SCALE = [1.2, 1.2, 1.2];
 
   const baseCarParts = [
     {
@@ -212,6 +180,7 @@ const Parts = () => {
     setUserQuestion("");
     setIsInputActive(false);
     setIsViewingDetailModel(false);
+    setDetailViewType(null);
   }, [carName]);
 
   const sendQuestionToBackend = async (partId, question) => {
@@ -260,10 +229,16 @@ const Parts = () => {
     setUserQuestion("");
     setIsInputActive(false);
 
-    if (part.name === "Engine" && ENGINE_MODELS[carInfo.engine]) {
+    // Handle detail views
+    if (part.name === "Engine") {
       setIsViewingDetailModel(true);
+      setDetailViewType("engine");
+    } else if (part.name === "Brakes") {
+      setIsViewingDetailModel(true);
+      setDetailViewType("brake");
     } else {
       setIsViewingDetailModel(false);
+      setDetailViewType(null);
     }
   };
 
@@ -272,6 +247,7 @@ const Parts = () => {
     setUserQuestion("");
     setIsInputActive(false);
     setIsViewingDetailModel(false);
+    setDetailViewType(null);
   };
 
   const handleAskFollowUp = () => {
@@ -287,36 +263,21 @@ const Parts = () => {
     ? partsWithResponses.find((p) => p.id === selectedPart.id) || selectedPart
     : null;
 
-  const render3DModel = () => {
-    if (isViewingDetailModel && selectedPart?.name === "Engine") {
-      const EngineModel = ENGINE_MODELS[carInfo.engine];
-      if (EngineModel) {
-        return (
-          <CenteredEngineModel>
-            <EngineModel scale={getEngineScale()} />
-          </CenteredEngineModel>
-        );
-      }
-    }
+  const isDetailView = isViewingDetailModel && detailViewType;
+  const isEngineView = detailViewType === "engine";
+  const isBrakeView = detailViewType === "brake";
 
-    return (
-      <group position={CAR_POSITION} rotation={CAR_ROTATION} scale={CAR_SCALE}>
-        <CarComponent />
-      </group>
-    );
+  const getCameraPosition = () => {
+    if (isEngineView) {
+      return carInfo.engine === "V8" ? [6, 6, 30] : [6, 5, 12];
+    } else if (isBrakeView) {
+      return [0, 2, 8]; // Adjust as needed for brake model
+    }
+    return CAMERA_POSITION_CAR;
   };
 
-  const cameraPosition =
-    isViewingDetailModel && ENGINE_MODELS[carInfo.engine]
-      ? getEngineCameraPosition()
-      : CAMERA_POSITION_CAR;
-
   const showEngineNotAvailable =
-    selectedPart?.name === "Engine" &&
-    !ENGINE_MODELS[carInfo.engine] &&
-    !isViewingDetailModel;
-
-  const isEngineView = isViewingDetailModel && ENGINE_MODELS[carInfo.engine];
+    isEngineView && !["V6", "V7", "V8"].includes(carInfo.engine);
 
   return (
     <div className="w-screen h-screen relative overflow-hidden bg-gradient-to-br from-slate-950 via-blue-950 to-indigo-950">
@@ -330,6 +291,11 @@ const Parts = () => {
         className="absolute top-1/3 right-1/3 w-80 h-80 bg-cyan-500/10 rounded-full blur-3xl animate-bounce"
         style={{ animationDuration: "6s" }}
       />
+      <img
+        src={logoGif}
+        alt="Mustang Logo"
+        className="absolute top-2 right-8 w-40 h-40 object-contain z-30 drop-shadow-[0_0_20px_rgba(59,130,246,0.8)] hover:scale-125 transition-transform duration-500"
+      />
 
       {/* Header */}
       <div className="absolute top-0 left-0 right-0 z-50 p-8 flex items-center justify-between">
@@ -340,17 +306,17 @@ const Parts = () => {
           <ArrowLeft className="w-5 h-5 group-hover:-translate-x-0.5 transition-transform" />
           <span className="font-semibold tracking-wide">Dashboard</span>
         </button>
-
-        <div className="text-right">
-          <h1 className="text-4xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-blue-300 to-purple-300">
-            {carInfo.name}
-          </h1>
-          <p className="text-blue-200/90 text-lg mt-1 tracking-wide">
-            Model: <span className="font-medium">{carInfo.model}</span> •
-            Engine: <span className="font-medium">{carInfo.engine}</span> • Top
-            Speed: <span className="font-medium">{carInfo.speed}</span>
-          </p>
-        </div>
+      </div>
+      <div className="text-center flex flex-col items-center justify-center">
+        <h1 className="text-4xl md:text-5
+        xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-blue-300 to-purple-300">
+          {carInfo.name}
+        </h1>
+        <p className="text-blue-200/90 text-lg mt-1 tracking-wide">
+          Model: <span className="font-medium">{carInfo.model}</span> • Engine:{" "}
+          <span className="font-medium">{carInfo.engine}</span> • Top Speed:{" "}
+          <span className="font-medium">{carInfo.speed}</span>
+        </p>
       </div>
 
       {/* Main Content */}
@@ -358,7 +324,7 @@ const Parts = () => {
         {/* 3D Viewer */}
         <div className="w-full md:w-2/3 h-full relative">
           <div className="h-full rounded-2xl overflow-hidden border border-blue-500/20 bg-gradient-to-b from-black/30 to-black/50 backdrop-blur-lg shadow-2xl shadow-indigo-900/30">
-            <Canvas shadows camera={{ position: cameraPosition, fov: 50 }}>
+            <Canvas shadows camera={{ position: getCameraPosition(), fov: 50 }}>
               <ambientLight intensity={1.4} />
               <directionalLight
                 position={[5, 8, 5]}
@@ -386,7 +352,19 @@ const Parts = () => {
 
               <Environment preset="city" />
 
-              {render3DModel()}
+              {isEngineView ? (
+                <EngineDetailView engineType={carInfo.engine} />
+              ) : isBrakeView ? (
+                <BrakeDetailView brakeType={carInfo.brake} />
+              ) : (
+                <group
+                  position={CAR_POSITION}
+                  rotation={CAR_ROTATION}
+                  scale={CAR_SCALE}
+                >
+                  <CarComponent />
+                </group>
+              )}
 
               <ContactShadows
                 position={[0, -1.5, 0]}
@@ -407,7 +385,8 @@ const Parts = () => {
               </mesh>
 
               <CustomOrbitControls
-                isEngineView={isEngineView}
+                isDetailView={isDetailView}
+                detailType={detailViewType}
                 engineType={carInfo.engine}
               />
             </Canvas>
