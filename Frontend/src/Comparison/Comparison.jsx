@@ -5,7 +5,7 @@ import {
   ContactShadows,
   OrbitControls as DreiOrbitControls,
 } from "@react-three/drei";
-import { ArrowLeft } from "lucide-react";
+import { ChevronDown, ArrowLeft, Loader } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Car from "../Components/Car";
 import Gt from "../Components/Gt";
@@ -21,7 +21,8 @@ const CAR_INFO = {
     engine: "V6",
     speed: "150mph",
     brake: "BRAKE1",
-    description: "A timeless classic with balanced performance and vintage charm.",
+    description:
+      "A timeless classic with balanced performance and vintage charm.",
   },
   Gt: {
     name: "GT Sports",
@@ -29,7 +30,8 @@ const CAR_INFO = {
     engine: "V7",
     speed: "180mph",
     brake: "BRAKE1",
-    description: "Aggressive styling with enhanced power and track-ready dynamics.",
+    description:
+      "Aggressive styling with enhanced power and track-ready dynamics.",
   },
   Mustang1968: {
     name: "Mustang 1968",
@@ -47,22 +49,18 @@ const CAR_COMPONENTS = {
   Mustang1968,
 };
 
-
 const CarScene = ({ carKey, selectedPart }) => {
   const CarComponent = CAR_COMPONENTS[carKey] || Car;
   const carInfo = CAR_INFO[carKey] || CAR_INFO.Car;
 
-  // Determine which detail view to show
   const renderDetail = () => {
     if (!selectedPart) return null;
-    
     switch (selectedPart.toLowerCase()) {
       case "engine":
         return <EngineDetailView engineType={carInfo.engine} />;
       case "brakes":
         return <BrakeDetailView brakeType={carInfo.brake} />;
       default:
-        // Placeholder for other parts (transmission, suspension, etc.)
         return (
           <group position={[0, 0, 0]} scale={[2, 2, 2]}>
             <mesh>
@@ -77,22 +75,48 @@ const CarScene = ({ carKey, selectedPart }) => {
   return (
     <>
       <ambientLight intensity={1.4} />
-      <directionalLight position={[5, 8, 5]} intensity={2.2} castShadow shadowMapSize={[2048, 2048]} />
+      <directionalLight
+        position={[5, 8, 5]}
+        intensity={2.2}
+        castShadow
+        shadowMapSize={[2048, 2048]}
+      />
       <directionalLight position={[-5, 3, -5]} intensity={1} color="#4a90ff" />
       <directionalLight position={[0, 2, -8]} intensity={1} color="#b190f6" />
-      <spotLight position={[0, 10, 0]} angle={0.5} penumbra={1} intensity={1.5} castShadow />
+      <spotLight
+        position={[0, 10, 0]}
+        angle={0.5}
+        penumbra={1}
+        intensity={1.5}
+        castShadow
+      />
       <Environment preset="city" />
-      
+
       {selectedPart ? (
         renderDetail()
       ) : (
-        <group position={[0, -1, 0]} rotation={[0, Math.PI / 4, 0]} scale={[1.8, 1.8, 1.8]}>
+        <group
+          position={[0, -1, 0]}
+          rotation={[0, Math.PI / 4, 0]}
+          scale={[1.8, 1.8, 1.8]}
+        >
           <CarComponent />
         </group>
       )}
-      
-      <ContactShadows position={[0, -1.5, 0]} opacity={0.4} scale={10} blur={2} far={5} color="#000000" />
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -1.51, 0]} receiveShadow>
+
+      <ContactShadows
+        position={[0, -1.5, 0]}
+        opacity={0.4}
+        scale={10}
+        blur={2}
+        far={5}
+        color="#000000"
+      />
+      <mesh
+        rotation={[-Math.PI / 2, 0, 0]}
+        position={[0, -1.51, 0]}
+        receiveShadow
+      >
         <planeGeometry args={[30, 30]} />
         <shadowMaterial opacity={0.2} />
       </mesh>
@@ -100,7 +124,13 @@ const CarScene = ({ carKey, selectedPart }) => {
         enableDamping
         dampingFactor={0.05}
         minDistance={selectedPart ? 1.5 : 3}
-        maxDistance={selectedPart ? (["V7", "V8"].includes(carInfo.engine) ? 100 : 20) : 12}
+        maxDistance={
+          selectedPart
+            ? ["V7", "V8"].includes(carInfo.engine)
+              ? 100
+              : 20
+            : 12
+        }
         minPolarAngle={0.3}
         maxPolarAngle={1.6}
         target={[0, selectedPart ? 0 : 1, 0]}
@@ -109,62 +139,217 @@ const CarScene = ({ carKey, selectedPart }) => {
   );
 };
 
-// ======================
-// Info Card Component
-// ======================
+const AIInsightBox = ({
+  title,
+  content,
+  loading,
+  bgGradient,
+  border,
+  textColor,
+  titleColor,
+}) => (
+  <div
+    className={`p-4 bg-gradient-to-b ${bgGradient} backdrop-blur-lg rounded-xl border ${border} shadow-lg shadow-black/30 flex flex-col h-full transition-all duration-300 hover:shadow-xl`}
+  >
+    <h3 className={`text-lg font-bold ${titleColor} mb-2 text-center`}>
+      {title}
+    </h3>
+    <div
+      className={`text-xs md:text-sm ${textColor} whitespace-pre-wrap leading-relaxed flex-1 overflow-y-auto max-h-40 custom-scrollbar`}
+    >
+      {loading ? (
+        <div className="flex flex-col items-center justify-center h-full gap-2">
+          <Loader className="w-5 h-5 animate-spin text-current" />
+          <span className="text-center">Generating insight...</span>
+        </div>
+      ) : content ? (
+        content
+      ) : (
+        <p className="text-center text-opacity-70">
+          Select a car to generate AI insights.
+        </p>
+      )}
+    </div>
+  </div>
+);
 
-const CarInfoCard = ({ carKey, label, gradientFrom, gradientTo, border, textColor, labelColor }) => {
-  const info = carKey ? CAR_INFO[carKey] : null;
+const CustomDropdown = ({
+  label,
+  options,
+  value,
+  onChange,
+  gradient,
+  border,
+  textColor,
+}) => {
+  const [open, setOpen] = useState(false);
 
   return (
     <div
-      className={`p-5 bg-gradient-to-b ${gradientFrom} ${gradientTo} backdrop-blur-lg rounded-2xl border ${border} shadow-lg`}
+      className={`relative w-full md:w-56 text-sm font-bold tracking-wide ${textColor}`}
     >
-      <h2 className={`text-xl font-bold ${labelColor} mb-3 text-center`}>{label}</h2>
-      {info ? (
-        <div className={`space-y-2 ${textColor}`}>
-          <p><span className="font-semibold">Name:</span> {info.name}</p>
-          <p><span className="font-semibold">Model:</span> {info.model}</p>
-          <p><span className="font-semibold">Engine:</span> {info.engine}</p>
-          <p><span className="font-semibold">Top Speed:</span> {info.speed}</p>
-          <p><span className="font-semibold">Brakes:</span> {info.brake}</p>
-          <p className="mt-2 text-sm italic opacity-90">{info.description}</p>
+      <button
+        onClick={() => setOpen(!open)}
+        className={`w-full flex justify-between items-center px-4 py-2.5 rounded-xl bg-gradient-to-r ${gradient} border ${border} shadow-lg transition-all duration-300 hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-offset-0`}
+      >
+        {value
+          ? `${options.find((opt) => opt.key === value)?.name} (${
+              options.find((opt) => opt.key === value)?.model
+            })`
+          : label}
+        <ChevronDown
+          className={`ml-2 w-4 h-4 transition-transform ${
+            open ? "rotate-180" : ""
+          }`}
+        />
+      </button>
+
+      {open && (
+        <div
+          className={`absolute mt-2 w-full rounded-xl overflow-hidden border ${border} shadow-2xl z-50`}
+        >
+          {options.map((opt) => (
+            <div
+              key={opt.key}
+              onClick={() => {
+                onChange(opt.key);
+                setOpen(false);
+              }}
+              className="cursor-pointer px-4 py-2.5 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 hover:from-blue-800 hover:to-blue-900 text-white transition-all duration-200"
+            >
+              {opt.name} ({opt.model})
+            </div>
+          ))}
         </div>
-      ) : (
-        <p className={`text-center text-sm opacity-70`}>No car selected.</p>
       )}
     </div>
   );
 };
 
-// ======================
-// Main Comparison Page
-// ======================
-
 const Comparison = () => {
   const navigate = useNavigate();
   const [carA, setCarA] = useState("");
   const [carB, setCarB] = useState("");
-  const [selectedPart, setSelectedPart] = useState(null); // Common for both cars
-  const allCars = Object.keys(CAR_INFO);
-  const [aiComparison, setAiComparison] = useState("");
+  const [selectedPart, setSelectedPart] = useState(null);
 
-  // Generate AI comparison text
-  useEffect(() => {
-    if (carA && carB) {
-      const infoA = CAR_INFO[carA];
-      const infoB = CAR_INFO[carB];
-      const comparisonText = `AI Analysis:\n\nBetween the ${infoA.name} (${infoA.model}) and the ${infoB.name} (${infoB.model}), the ${infoB.name} offers superior top speed (${infoB.speed} vs ${infoA.speed}) and a more aggressive engine note due to its ${infoB.engine} configuration. However, the ${infoA.name} provides a smoother, more refined driving experience ideal for daily cruising. Choose ${infoB.name} for raw performance, or ${infoA.name} for classic elegance.`;
-      setAiComparison(comparisonText);
-    } else {
-      setAiComparison("");
+  const [aiInsightA, setAiInsightA] = useState("");
+  const [aiInsightB, setAiInsightB] = useState("");
+  const [aiComparison, setAiComparison] = useState("");
+  const [loadingA, setLoadingA] = useState(false);
+  const [loadingB, setLoadingB] = useState(false);
+  const [loadingCompare, setLoadingCompare] = useState(false);
+
+  const allCars = Object.keys(CAR_INFO);
+
+  // === API CALL HELPERS ===
+  const fetchGeneralInsight = async (carKey) => {
+    const info = CAR_INFO[carKey];
+    const question = `Describe the ${info.engine} engine, performance, design, and key features of the ${info.name} (${info.model}) in detail.`;
+    try {
+      const res = await fetch("http://127.0.0.1:5000/api/ask", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question }),
+      });
+      const data = await res.json();
+      return data.answer || "No response from AI.";
+    } catch (err) {
+      console.error("AI Fetch Error:", err);
+      return "Failed to load AI response.";
     }
+  };
+
+  const fetchPartInsight = async (carKey, part) => {
+    try {
+      const res = await fetch("http://127.0.0.1:5000/part-insight", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ carKey, part }),
+      });
+      const data = await res.json();
+      return data.answer || "No insight available.";
+    } catch (err) {
+      console.error("Part Insight Fetch Error:", err);
+      return "Failed to load part insight.";
+    }
+  };
+
+  const fetchComparison = async (carAKey, carBKey) => {
+    const infoA = CAR_INFO[carAKey];
+    const infoB = CAR_INFO[carBKey];
+    const question = `Compare the ${infoA.name} (${infoA.model}, ${infoA.engine}) and the ${infoB.name} (${infoB.model}, ${infoB.engine}) in terms of performance, engine power, top speed, and driving experience. Highlight key differences.`;
+    try {
+      const res = await fetch("http://127.0.0.1:5000/api/ask", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question }),
+      });
+      const data = await res.json();
+      return data.answer || "No comparison available.";
+    } catch (err) {
+      console.error("Comparison Fetch Error:", err);
+      return "Failed to load comparison.";
+    }
+  };
+
+  // === EFFECT: Update Car A Insight ===
+  useEffect(() => {
+    const updateInsightA = async () => {
+      if (!carA) {
+        setAiInsightA("");
+        return;
+      }
+
+      setLoadingA(true);
+      let response;
+      if (selectedPart) {
+        response = await fetchPartInsight(carA, selectedPart);
+      } else {
+        response = await fetchGeneralInsight(carA);
+      }
+      setAiInsightA(response);
+      setLoadingA(false);
+    };
+    updateInsightA();
+  }, [carA, selectedPart]);
+
+  // === EFFECT: Update Car B Insight ===
+  useEffect(() => {
+    const updateInsightB = async () => {
+      if (!carB) {
+        setAiInsightB("");
+        return;
+      }
+
+      setLoadingB(true);
+      let response;
+      if (selectedPart) {
+        response = await fetchPartInsight(carB, selectedPart);
+      } else {
+        response = await fetchGeneralInsight(carB);
+      }
+      setAiInsightB(response);
+      setLoadingB(false);
+    };
+    updateInsightB();
+  }, [carB, selectedPart]);
+
+  // === EFFECT: Update Comparison ===
+  useEffect(() => {
+    const updateComparison = async () => {
+      if (!carA || !carB) {
+        setAiComparison("");
+        return;
+      }
+      setLoadingCompare(true);
+      const response = await fetchComparison(carA, carB);
+      setAiComparison(response);
+      setLoadingCompare(false);
+    };
+    updateComparison();
   }, [carA, carB]);
 
-  const handleCarAChange = (e) => setCarA(e.target.value);
-  const handleCarBChange = (e) => setCarB(e.target.value);
-
-  // Part buttons configuration
+  // === PART HANDLING ===
   const PARTS = [
     { id: "engine", name: "Engine" },
     { id: "transmission", name: "Transmission" },
@@ -175,13 +360,16 @@ const Comparison = () => {
   ];
 
   const handlePartClick = (partId) => {
-    // Toggle: if already selected, show full car again
     setSelectedPart(selectedPart === partId ? null : partId);
   };
 
+  // === DROPDOWN OPTIONS ===
+  const availableForB = allCars.filter((key) => key !== carA);
+  const availableForA = allCars.filter((key) => key !== carB);
+
   return (
     <div className="w-screen h-screen relative overflow-hidden bg-gradient-to-br from-slate-950 via-blue-950 to-indigo-950">
-      {/* Animated Background Blobs */}
+      {/* Background effects */}
       <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl animate-pulse" />
       <div
         className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-600/25 rounded-full blur-3xl animate-pulse"
@@ -192,67 +380,64 @@ const Comparison = () => {
         style={{ animationDuration: "6s" }}
       />
 
-      {/* Logo */}
       <img
         src={logoGif}
         alt="Mustang Logo"
-        className="absolute top-2 right-8 w-40 h-40 object-contain z-30 drop-shadow-[0_0_20px_rgba(59,130,246,0.8)] hover:scale-125 transition-transform duration-500"
+        className="absolute top-2 right-8 w-40 h-40 object-contain z-30 drop-shadow-[0_0_20px_rgba(59,130,246,0.8)] transition-transform duration-500 hover:scale-110"
       />
 
-      {/* Header */}
       <div className="absolute top-0 left-0 right-0 z-50 p-6 flex items-center justify-between">
         <button
           onClick={() => navigate(-1)}
-          className="group flex items-center gap-2 px-4 py-2.5 rounded-full bg-gradient-to-r from-blue-600/30 to-purple-600/30 backdrop-blur-sm border border-blue-400/40 hover:from-blue-500/40 hover:to-purple-500/40 transition-all duration-300 hover:scale-105 text-white shadow-lg shadow-blue-500/10"
+          className="group flex items-center gap-2 px-4 py-2.5 rounded-full bg-gradient-to-r from-blue-600/30 to-purple-600/30 backdrop-blur-sm border border-blue-400/40 hover:from-blue-500/40 hover:to-purple-500/40 transition-all duration-300 hover:scale-105 text-white shadow-lg shadow-blue-500/10 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-50"
         >
           <ArrowLeft className="w-5 h-5 group-hover:-translate-x-0.5 transition-transform" />
           <span className="font-semibold tracking-wide">Dashboard</span>
         </button>
       </div>
 
-      {/* Page Title */}
       <h1 className="absolute top-[2%] left-1/2 transform -translate-x-1/2 text-4xl md:text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-blue-300 to-purple-300 text-center px-4">
         Compare Vehicles
       </h1>
 
-      {/* Main Content */}
-      <div className="absolute inset-0 pt-28 pb-4 px-4 md:px-6 flex flex-col gap-6">
-        {/* 3D Canvases */}
-        <div className="flex flex-col md:flex-row gap-4">
-          <div className="flex-1 rounded-2xl overflow-hidden border border-blue-500/20 bg-gradient-to-b from-black/30 to-black/50 backdrop-blur-lg shadow-2xl shadow-indigo-900/30 h-[320px] md:h-[400px]">
+      <div className="absolute inset-0 pt-28 pb-4 px-2 md:px-4 flex flex-col gap-5">
+        {/* Car Scenes */}
+        <div className="flex flex-col md:flex-row gap-3">
+          <div className="flex-1 rounded-2xl overflow-hidden border border-blue-500/20 bg-black/30 backdrop-blur-lg shadow-2xl h-[280px] md:h-[360px]">
             {carA ? (
               <Canvas shadows camera={{ position: [5, 3, 5], fov: 50 }}>
                 <CarScene carKey={carA} selectedPart={selectedPart} />
               </Canvas>
             ) : (
               <div className="w-full h-full flex items-center justify-center text-center p-4">
-                <p className="text-blue-200/80 text-sm">Select a car to view its 3D model.</p>
+                <p className="text-blue-200/80 text-sm font-medium">Select Car A</p>
               </div>
             )}
           </div>
-          <div className="flex-1 rounded-2xl overflow-hidden border border-purple-500/20 bg-gradient-to-b from-black/30 to-black/50 backdrop-blur-lg shadow-2xl shadow-purple-900/30 h-[320px] md:h-[400px]">
+
+          <div className="flex-1 rounded-2xl overflow-hidden border border-purple-500/20 bg-black/30 backdrop-blur-lg shadow-2xl h-[280px] md:h-[360px]">
             {carB ? (
               <Canvas shadows camera={{ position: [5, 3, 5], fov: 50 }}>
                 <CarScene carKey={carB} selectedPart={selectedPart} />
               </Canvas>
             ) : (
               <div className="w-full h-full flex items-center justify-center text-center p-4">
-                <p className="text-purple-200/80 text-sm">Select a second car to compare.</p>
+                <p className="text-purple-200/80 text-sm font-medium">Select Car B</p>
               </div>
             )}
           </div>
         </div>
 
-        {/* Part Buttons - Common for both cars */}
-        <div className="flex flex-wrap justify-center gap-2 px-2">
+        {/* Car Parts Buttons */}
+        <div className="flex flex-wrap justify-center gap-2">
           {PARTS.map((part) => (
             <button
               key={part.id}
               onClick={() => handlePartClick(part.id)}
-              className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-all ${
+              className={`px-3 py-1.5 text-xs md:text-sm font-medium rounded-lg transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-opacity-50 ${
                 selectedPart === part.id
-                  ? "bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg"
-                  : "bg-white/10 text-orange-200 hover:bg-white/20"
+                  ? "bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg ring-2 ring-orange-400/50"
+                  : "bg-white/10 text-orange-200 hover:bg-white/20 ring-orange-300/30"
               }`}
             >
               {part.name}
@@ -260,93 +445,82 @@ const Comparison = () => {
           ))}
         </div>
 
-        {/* Dropdown Selectors */}
-        <div className="flex flex-col md:flex-row gap-4 items-center justify-center px-2">
-          <select
+        {/* Dropdowns */}
+        <div className="flex flex-col md:flex-row gap-3 items-center justify-center">
+          <CustomDropdown
+            label="Select Car A"
             value={carA}
-            onChange={handleCarAChange}
-            className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-cyan-900/50 to-blue-900/50 text-white border border-cyan-500/40 focus:outline-none focus:ring-2 focus:ring-cyan-400 w-full md:w-auto"
-          >
-            <option value="">Select Car A</option>
-            {allCars.map((key) => (
-              <option key={key} value={key}>
-                {CAR_INFO[key].name} ({CAR_INFO[key].model})
-              </option>
-            ))}
-          </select>
-          <span className="text-white font-bold text-xl hidden md:block">VS</span>
-          <span className="text-white font-bold text-center my-2 md:hidden">VS</span>
-          <select
+            onChange={(val) => {
+              setCarA(val);
+              if (val === carB) setCarB("");
+            }}
+            options={availableForA.map((key) => ({
+              key,
+              name: CAR_INFO[key].name,
+              model: CAR_INFO[key].model,
+            }))}
+            gradient="from-orange-700 via-red-800 to-red-900"
+            border="border-orange-500/60"
+            textColor="text-orange-100"
+          />
+
+          <span className="text-white font-bold text-xl mx-2 md:mx-4">VS</span>
+
+          <CustomDropdown
+            label="Select Car B"
             value={carB}
-            onChange={handleCarBChange}
-            className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-purple-900/50 to-red-900/50 text-white border border-purple-500/40 focus:outline-none focus:ring-2 focus:ring-purple-400 w-full md:w-auto"
-          >
-            <option value="">Select Car B</option>
-            {allCars.map((key) => (
-              <option key={key} value={key}>
-                {CAR_INFO[key].name} ({CAR_INFO[key].model})
-              </option>
-            ))}
-          </select>
+            onChange={(val) => {
+              setCarB(val);
+              if (val === carA) setCarA("");
+            }}
+            options={availableForB.map((key) => ({
+              key,
+              name: CAR_INFO[key].name,
+              model: CAR_INFO[key].model,
+            }))}
+            gradient="from-purple-800 via-fuchsia-800 to-red-900"
+            border="border-fuchsia-500/60"
+            textColor="text-purple-100"
+          />
         </div>
 
-        {/* Info Cards + AI Analysis */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-          <CarInfoCard
-            carKey={carA}
-            label="Car A"
-            gradientFrom="from-cyan-900/20"
-            gradientTo="to-blue-900/20"
-            border="border-cyan-500/30"
-            textColor="text-blue-100"
-            labelColor="text-cyan-300"
+        {/* AI Insights Grid — dynamically shows full car or part-specific */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-4 h-[450px]">
+          <AIInsightBox
+            title={selectedPart ? `${CAR_INFO[carA]?.name || "Car A"} - ${selectedPart.charAt(0).toUpperCase() + selectedPart.slice(1)}` : "Car A AI Insight"}
+            content={aiInsightA}
+            loading={loadingA}
+            bgGradient="from-cyan-900/30 to-blue-900/30"
+            border="border-cyan-500/40"
+            textColor="text-cyan-100"
+            titleColor="text-cyan-300"
           />
-          <div className="p-5 bg-gradient-to-b from-orange-900/30 to-red-900/30 backdrop-blur-lg rounded-2xl border border-orange-500/40 shadow-lg flex items-center justify-center">
-            {aiComparison ? (
-              <div>
-                <h2 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-orange-300 to-red-400 mb-3 text-center">
-                  AI Comparison 🔥
-                </h2>
-                <div className="text-orange-100 whitespace-pre-line leading-relaxed text-sm md:text-base max-h-48 overflow-y-auto custom-scrollbar">
-                  {aiComparison}
-                </div>
-              </div>
-            ) : (
-              <p className="text-orange-200/70 text-center text-sm">
-                Select both cars to see AI analysis.
-              </p>
-            )}
-          </div>
-          <CarInfoCard
-            carKey={carB}
-            label="Car B"
-            gradientFrom="from-purple-900/20"
-            gradientTo="to-red-900/20"
-            border="border-purple-500/30"
+          <AIInsightBox
+            title="AI Comparison 🔥"
+            content={aiComparison}
+            loading={loadingCompare}
+            bgGradient="from-orange-900/40 to-red-900/40"
+            border="border-orange-500/50"
+            textColor="text-orange-100"
+            titleColor="text-orange-300"
+          />
+          <AIInsightBox
+            title={selectedPart ? `${CAR_INFO[carB]?.name || "Car B"} - ${selectedPart.charAt(0).toUpperCase() + selectedPart.slice(1)}` : "Car B AI Insight"}
+            content={aiInsightB}
+            loading={loadingB}
+            bgGradient="from-purple-900/30 to-red-900/30"
+            border="border-purple-500/40"
             textColor="text-purple-100"
-            labelColor="text-purple-300"
+            titleColor="text-purple-300"
           />
         </div>
       </div>
 
-      {/* Custom Scrollbar Styling */}
       <style>{`
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 8px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: rgba(0, 0, 0, 0.2);
-          border-radius: 10px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: linear-gradient(to bottom, #f97316, #ef4444);
-          border-radius: 10px;
-          border: 2px solid transparent;
-          background-clip: content-box;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: linear-gradient(to bottom, #fb923c, #f87171);
-        }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.2); border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: linear-gradient(to bottom, #f97316, #ef4444); border-radius: 10px; border: 2px solid transparent; background-clip: content-box; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: linear-gradient(to bottom, #fb923c, #f87171); }
       `}</style>
     </div>
   );
