@@ -4,6 +4,7 @@ import {
   Environment,
   ContactShadows,
   OrbitControls as DreiOrbitControls,
+  useGLTF,
 } from "@react-three/drei";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
@@ -27,6 +28,11 @@ import EngineDetailView from "./EngineDetail/EngineDetailView";
 import BrakeDetailView from "./BrakeDetail/BrakeDetailView";
 import logoGif from "../assets/wheelwithwings.gif";
 
+function FordMustangBoss1969() {
+  const { scene } = useGLTF('/ford_mustang_boss_1969.glb');
+  return <primitive object={scene} />;
+}
+
 const CAR_INFO = {
   Car: {
     name: "Classic Car",
@@ -49,12 +55,20 @@ const CAR_INFO = {
     speed: "190mph",
     brake: "BRAKE1",
   },
+  FordMustangBoss1969: {
+    name: "1970 Ford ",
+    model: "1970",
+    engine: "V8",
+    speed: "200mph",
+    brake: "BRAKE1",
+  },
 };
 
 const CAR_COMPONENTS = {
   Car,
   Gt,
   Mustang1968,
+  FordMustangBoss1969,
 };
 
 const PART_ICONS = {

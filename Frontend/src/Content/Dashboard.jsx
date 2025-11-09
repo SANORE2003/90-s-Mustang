@@ -1,14 +1,23 @@
 // Dashboard.jsx - Updated with Learn button that passes car data and plays ignition sound
+import * as THREE from 'three'
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { ChevronLeft, ChevronRight, Gauge } from "lucide-react";
 import { Canvas } from "@react-three/fiber";
-import { Environment, ContactShadows } from "@react-three/drei";
+import { Environment, ContactShadows, useGLTF } from "@react-three/drei";
 import { useNavigate } from "react-router-dom";
 import Car from "../Components/Car";
 import Gt from "../Components/Gt";
 import Mustang1968 from "../Components/Mustang1968";
-import audioFile from "../assets/Ignition.mp3"; 
 
+// New component to load the GLB model
+function FordMustangBoss1969() {
+  const { scene } = useGLTF('/ford_mustang_boss_1969.glb');
+  return <primitive object={scene} />;
+}
+function Boss302() {
+  const { scene } = useGLTF('/greenmustang.glb');
+  return <primitive object={scene} />;
+}
 // Individual Canvas Component for each car
 const CarCanvas = ({ car }) => {
   const CarComponent = car.component;
@@ -63,7 +72,6 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const [currentIndex, setCurrentIndex] = useState(0);
 
-
   const cars = [
     {
       component: Car,
@@ -101,6 +109,30 @@ export default function Dashboard() {
       scale: [2, 2, 2],
       camera: { position: [0, 0, 9], fov: 55 },
     },
+    {
+      component: FordMustangBoss1969,
+      componentName: "FordMustangBoss1969",
+      name: "Ford1969",
+      model: "1969",
+      engine: "V8",
+      speed: "200mph",
+      position: [-1, -4, -10],
+      rotation: [0, 1, 0],
+      scale: [2.2, 2.2, 2.2],
+      camera: { position: [5, 1, 5], fov: 45 },
+    },
+    {
+      component: Boss302,
+      componentName: "Boss Atitude",
+      name: "1970 Ford ",
+      model: "1970",
+      engine: "V8",
+      speed: "200mph",
+      position: [9, -8, 2],
+      rotation: [4, 3, 5],
+      scale: [0.2, 0.2, 0.2],
+      camera: { position: [5, 2, 5], fov: 105 },
+    },
   ];
 
   const nextCar = useCallback(() => {
@@ -122,27 +154,28 @@ export default function Dashboard() {
   }, [nextCar, prevCar]);
 
   // Handle Parts button click
-const handlePartsClick = () => {
-  // ✅ Play sound immediately in response to user click
-  const audio = new Audio(audioFile);
-  audio.play().catch((e) => {
-    console.warn("Ignition sound failed to play:", e);
-  });
+  const handlePartsClick = () => {
+    // ✅ Play sound immediately in response to user click
+    const audio = new Audio("/path/to/your/ignition-sound.mp3"); // Update this path if you have a sound file
+    audio.play().catch((e) => {
+      console.warn("Ignition sound failed to play:", e);
+    });
 
-  navigate("/parts", {
-    state: {
-      carName: cars[currentIndex].componentName,
-    },
-  });
-};
+    navigate("/parts", {
+      state: {
+        carName: cars[currentIndex].componentName,
+      },
+    });
+  };
 
-const handleComparisonClick = () => {
-  navigate("/comparison", {
-    state: {
-      carName: cars[currentIndex].componentName,
-    },
-  });
-}
+  const handleComparisonClick = () => {
+    navigate("/comparison", {
+      state: {
+        carName: cars[currentIndex].componentName,
+      },
+    });
+  };
+
   return (
     <div className="w-screen h-screen relative overflow-hidden">
       {/* Background Gradient */}
@@ -167,6 +200,7 @@ const handleComparisonClick = () => {
       </div>
 
       {/* Canvas Container */}
+            {/* Canvas Container */}
       <div className="absolute inset-0 flex items-center justify-center z-20">
         <div className="relative w-full h-full flex items-center justify-center">
           {cars.map((car, index) => {
@@ -187,7 +221,7 @@ const handleComparisonClick = () => {
                   pointerEvents: isActive ? "auto" : "none",
                 }}
               >
-                <div className="flex items-center justify-center h-screen w-screen">
+                <div className="flex items-center justify-center w-full h-full">
                   <CarCanvas car={car} />
                 </div>
               </div>
