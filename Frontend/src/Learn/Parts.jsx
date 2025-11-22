@@ -26,10 +26,18 @@ import Gt from "../Components/Gt";
 import Mustang1968 from "../Components/Mustang1968";
 import EngineDetailView from "./EngineDetail/EngineDetailView";
 import BrakeDetailView from "./BrakeDetail/BrakeDetailView";
+import ChasisDetailView from "./ChasisDetail/ChasisDetailView";
+import ExhaustDetailView from "./Exhaustdetail/ExhaustDetailView";
+import WheelDetailView from "./WheelDetail/WheelDetailView";
 import logoGif from "../assets/wheelwithwings.gif";
 
 function FordMustangBoss1969() {
   const { scene } = useGLTF('/ford_mustang_boss_1969.glb');
+  return <primitive object={scene} />;
+}
+
+function Mustang2005(){
+  const { scene } = useGLTF('/mustang2005.glb');  
   return <primitive object={scene} />;
 }
 
@@ -40,6 +48,7 @@ const CAR_INFO = {
     engine: "V6",
     speed: "150mph",
     brake: "BRAKE1",
+    chasis: "CHASIS1",
   },
   Gt: {
     name: "GT Sports",
@@ -47,6 +56,7 @@ const CAR_INFO = {
     engine: "V7",
     speed: "180mph",
     brake: "BRAKE1",
+    chasis: "CHASIS1",
   },
   Mustang1968: {
     name: "Mustang 1968",
@@ -54,6 +64,7 @@ const CAR_INFO = {
     engine: "V8",
     speed: "190mph",
     brake: "BRAKE1",
+    chasis: "CHASIS1",
   },
   FordMustangBoss1969: {
     name: "1970 Ford ",
@@ -61,6 +72,15 @@ const CAR_INFO = {
     engine: "V8",
     speed: "200mph",
     brake: "BRAKE1",
+    chasis: "CHASIS1",
+  },
+  Mustang2005: {
+    name: "Mustang2005",
+    model: "2005",
+    engine: "V12",
+    speed: "155mph",
+    brake: "BRAKE1",
+    chasis: "CHASIS1",
   },
 };
 
@@ -69,12 +89,13 @@ const CAR_COMPONENTS = {
   Gt,
   Mustang1968,
   FordMustangBoss1969,
+  Mustang2005,
 };
 
 const PART_ICONS = {
   Engine: Zap,
-  Transmission: Settings,
-  Suspension: Waves,
+  Chasis: Settings,
+  // Suspension: Waves,
   Brakes: ShieldCheck,
   Exhaust: Waves,
   Wheels: Circle,
@@ -90,12 +111,22 @@ function CustomOrbitControls({ isDetailView, detailType, engineType }) {
 
   if (isDetailView) {
     if (detailType === "engine") {
-      maxDist = engineType === "V7" || engineType === "V8" ? 100 : 20;
+      if (engineType === "V7" || engineType === "V8") {
+        maxDist = 100;
+      } else if (engineType === "V12") {
+        maxDist = 25;
+      } else {
+        maxDist = 20;
+      }
       minDist = 2;
       targetY = 0;
     } else if (detailType === "brake") {
       maxDist = 15;
       minDist = 1.5;
+      targetY = 0;
+    } else if (detailType === "chasis") {
+      maxDist = 20;
+      minDist = 3;
       targetY = 0;
     }
   }
@@ -124,7 +155,7 @@ const Parts = () => {
   const [userQuestion, setUserQuestion] = useState("");
   const [isInputActive, setIsInputActive] = useState(false);
   const [isViewingDetailModel, setIsViewingDetailModel] = useState(false);
-  const [detailViewType, setDetailViewType] = useState(null); // 'engine' or 'brake'
+  const [detailViewType, setDetailViewType] = useState(null); 
 
   const carName = location.state?.carName || "Car";
   const carInfo = CAR_INFO[carName] || CAR_INFO.Car;
@@ -146,20 +177,20 @@ const Parts = () => {
     },
     {
       id: 2,
-      name: "Transmission",
+      name: "Chasis",
       description:
-        "6-speed manual transmission for optimal control and gear responsiveness.",
+        "The chassis is the structural framework of the vehicle that supports all major components.",
       status: "Operational",
-      question: "How does the transmission system work?",
+      question: "How does the chassis contribute to vehicle stability?",
     },
-    {
-      id: 3,
-      name: "Suspension",
-      description:
-        "Sport-tuned suspension system for enhanced handling and road grip.",
-      status: "Operational",
-      question: "What makes the suspension sport-tuned?",
-    },
+    // {
+    //   id: 3,
+    //   name: "Suspension",
+    //   description:
+    //     "Sport-tuned suspension system for enhanced handling and road grip.",
+    //   status: "Operational",
+    //   question: "What makes the suspension sport-tuned?",
+    // },
     {
       id: 4,
       name: "Brakes",
@@ -235,27 +266,36 @@ const Parts = () => {
   };
 
   const handlePartClick = (part) => {
-    setSelectedPart(part);
-    const currentPart = partsWithResponses.find((p) => p.id === part.id);
-    if (currentPart && !currentPart.response && !currentPart.loading) {
-      sendQuestionToBackend(part.id, part.question);
-    }
-    setUserQuestion("");
-    setIsInputActive(false);
+  setSelectedPart(part);
+  const currentPart = partsWithResponses.find((p) => p.id === part.id);
+  if (currentPart && !currentPart.response && !currentPart.loading) {
+    sendQuestionToBackend(part.id, part.question);
+  }
+  setUserQuestion("");
+  setIsInputActive(false);
 
-    // Handle detail views
-    if (part.name === "Engine") {
-      setIsViewingDetailModel(true);
-      setDetailViewType("engine");
-    } else if (part.name === "Brakes") {
-      setIsViewingDetailModel(true);
-      setDetailViewType("brake");
-    } else {
-      setIsViewingDetailModel(false);
-      setDetailViewType(null);
-    }
-  };
-
+  // Handle detail views
+  if (part.name === "Engine") {
+    setIsViewingDetailModel(true);
+    setDetailViewType("engine");
+  } else if (part.name === "Brakes") {
+    setIsViewingDetailModel(true);
+    setDetailViewType("brake");
+  } else if (part.name === "Chasis") {
+    setIsViewingDetailModel(true);
+    setDetailViewType("chasis");
+  } else if (part.name === "Exhaust") {
+    setIsViewingDetailModel(true);
+    setDetailViewType("exhaust");
+  } else if (part.name === "Wheels") {
+    setIsViewingDetailModel(true);
+    setDetailViewType("wheel");
+  } else {
+    setIsViewingDetailModel(false);
+    setDetailViewType(null);
+  }
+};
+  
   const handleBackClick = () => {
     setSelectedPart(null);
     setUserQuestion("");
@@ -280,18 +320,30 @@ const Parts = () => {
   const isDetailView = isViewingDetailModel && detailViewType;
   const isEngineView = detailViewType === "engine";
   const isBrakeView = detailViewType === "brake";
+  const isChasisView = detailViewType === "chasis";
+  const isExhaustView = detailViewType === "exhaust";
+  const isWheelView = detailViewType === "wheel";
 
-  const getCameraPosition = () => {
-    if (isEngineView) {
-      return carInfo.engine === "V8" ? [6, 6, 30] : [6, 5, 12];
-    } else if (isBrakeView) {
-      return [0, 2, 8]; // Adjust as needed for brake model
-    }
-    return CAMERA_POSITION_CAR;
-  };
+const getCameraPosition = () => {
+  if (isEngineView) {
+    if (carInfo.engine === "V8") return [6, 6, 30];
+    if (carInfo.engine === "V12") return [8, 6, 15];
+    return [6, 5, 12];
+  } else if (isBrakeView) {
+    return [0, 2, 8];
+  } else if (isChasisView) {
+    return [8, 5, 12];
+  } else if (detailViewType === "exhaust") {
+    return [0, 3, 10];
+  } else if (detailViewType === "wheel") {
+    return [0, 3, 8];
+  }
+  return CAMERA_POSITION_CAR;
+};
 
+  // Updated to include V12 in available engines
   const showEngineNotAvailable =
-    isEngineView && !["V6", "V7", "V8"].includes(carInfo.engine);
+    isEngineView && !["V6", "V7", "V8", "V12"].includes(carInfo.engine);
 
   return (
     <div className="w-screen h-screen relative overflow-hidden bg-gradient-to-br from-slate-950 via-blue-950 to-indigo-950">
@@ -366,19 +418,24 @@ const Parts = () => {
               <Environment preset="city" />
 
               {isEngineView ? (
-                <EngineDetailView engineType={carInfo.engine} />
-              ) : isBrakeView ? (
-                <BrakeDetailView brakeType={carInfo.brake} />
-              ) : (
-                <group
-                  position={CAR_POSITION}
-                  rotation={CAR_ROTATION}
-                  scale={CAR_SCALE}
-                >
-                  <CarComponent />
-                </group>
-              )}
-
+  <EngineDetailView engineType={carInfo.engine} />
+) : isBrakeView ? (
+  <BrakeDetailView brakeType={carInfo.brake} />
+) : isChasisView ? (
+  <ChasisDetailView chasisType={carInfo.chasis} />
+) : isExhaustView ? (
+  <ExhaustDetailView exhaustType="EXHAUST1" />
+) : isWheelView ? (
+  <WheelDetailView wheelType="WHEEL1" />
+) : (
+  <group
+    position={CAR_POSITION}
+    rotation={CAR_ROTATION}
+    scale={CAR_SCALE}
+  >
+    <CarComponent />
+  </group>
+)}
               <ContactShadows
                 position={[0, -1.5, 0]}
                 opacity={0.4}

@@ -1,23 +1,33 @@
-// Dashboard.jsx - Updated with Learn button that passes car data and plays ignition sound
+// Dashboard.jsx
 import * as THREE from 'three'
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { ChevronLeft, ChevronRight, Gauge } from "lucide-react";
 import { Canvas } from "@react-three/fiber";
-import { Environment, ContactShadows, useGLTF } from "@react-three/drei";
+// Added 'Center' to imports
+import { Environment, ContactShadows, useGLTF, Center } from "@react-three/drei"; 
 import { useNavigate } from "react-router-dom";
 import Car from "../Components/Car";
 import Gt from "../Components/Gt";
 import Mustang1968 from "../Components/Mustang1968";
+// import Car2005 from "../Components/Car2005";
+import ignitionSound from "../assets/Ignition.mp3";
 
 // New component to load the GLB model
 function FordMustangBoss1969() {
   const { scene } = useGLTF('/ford_mustang_boss_1969.glb');
   return <primitive object={scene} />;
 }
-function Boss302() {
-  const { scene } = useGLTF('/greenmustang.glb');
-  return <primitive object={scene} />;
+
+// Updated Boss302 with Center component to fix offset issue
+function Mustang2005() {
+  const { scene } = useGLTF('/mustang2005.glb');
+  return (
+    <Center>
+      <primitive object={scene} />
+    </Center>
+  );
 }
+
 // Individual Canvas Component for each car
 const CarCanvas = ({ car }) => {
   const CarComponent = car.component;
@@ -122,16 +132,16 @@ export default function Dashboard() {
       camera: { position: [5, 1, 5], fov: 45 },
     },
     {
-      component: Boss302,
-      componentName: "Boss Atitude",
+      component: Mustang2005,
+      componentName: "Mustang2005",
       name: "1970 Ford ",
       model: "1970",
-      engine: "V8",
+      engine: "V12",
       speed: "200mph",
-      position: [9, -8, 2],
-      rotation: [4, 3, 5],
-      scale: [0.2, 0.2, 0.2],
-      camera: { position: [5, 2, 5], fov: 105 },
+      position: [-10, -1.2, 3], 
+      rotation: [0, -Math.PI/2, 0], 
+      scale: [1, 1, 1],       
+      camera: { position: [-15, Math.PI/20, Math.PI/9], fov: 65 },
     },
   ];
 
@@ -153,10 +163,8 @@ export default function Dashboard() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [nextCar, prevCar]);
 
-  // Handle Parts button click
   const handlePartsClick = () => {
-    // ✅ Play sound immediately in response to user click
-    const audio = new Audio("/path/to/your/ignition-sound.mp3"); // Update this path if you have a sound file
+    const audio = new Audio(ignitionSound);
     audio.play().catch((e) => {
       console.warn("Ignition sound failed to play:", e);
     });
@@ -164,9 +172,9 @@ export default function Dashboard() {
     navigate("/parts", {
       state: {
         carName: cars[currentIndex].componentName,
-      },
+      }
     });
-  };
+  }
 
   const handleComparisonClick = () => {
     navigate("/comparison", {
@@ -200,7 +208,6 @@ export default function Dashboard() {
       </div>
 
       {/* Canvas Container */}
-            {/* Canvas Container */}
       <div className="absolute inset-0 flex items-center justify-center z-20">
         <div className="relative w-full h-full flex items-center justify-center">
           {cars.map((car, index) => {

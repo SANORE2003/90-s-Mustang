@@ -2,6 +2,7 @@
 import * as THREE from "three";
 import React, { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
+import { useGLTF } from "@react-three/drei";
 
 function CenteredEngineModel({ children }) {
   const groupRef = useRef();
@@ -19,16 +20,21 @@ function CenteredEngineModel({ children }) {
   return <group ref={groupRef}>{children}</group>;
 }
 
+
 const ENGINE_MODELS = {
   V6: React.lazy(() => import("../../Components/V6_Engine")),
   V7: React.lazy(() => import("../../Components/V7_Engine")),
   V8: React.lazy(() => import("../../Components/V8_Engine")),
+  V12: React.lazy(() => import("../../Components/V12_Engine")),
 };
 
 export default function EngineDetailView({ engineType }) {
   const getEngineScale = () => {
     if (engineType === "V8") {
       return [0.2, 0.2, 0.2];
+    }
+    if (engineType === "V12") {
+      return [0.2, 0.2, 0.2]; // Adjust this scale as needed for your V12 model
     }
     return [2.5, 2.5, 2.5];
   };
