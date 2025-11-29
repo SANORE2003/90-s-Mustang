@@ -86,7 +86,7 @@ export default function Dashboard() {
     {
       component: Car,
       componentName: "Car",
-      name: "Classic Car",
+      name: "Hardtop",
       model: "1965",
       engine: "V6",
       speed: "150mph",
@@ -98,7 +98,7 @@ export default function Dashboard() {
     {
       component: Gt,
       componentName: "Gt",
-      name: "GT Sports",
+      name: "GT Fastback",
       model: "1967",
       engine: "V7",
       speed: "180mph",
@@ -110,7 +110,7 @@ export default function Dashboard() {
     {
       component: Mustang1968,
       componentName: "Mustang1968",
-      name: "Mustang 1968",
+      name: "SportsRoof",
       model: "1968",
       engine: "V8",
       speed: "190mph",
@@ -122,7 +122,7 @@ export default function Dashboard() {
     {
       component: FordMustangBoss1969,
       componentName: "FordMustangBoss1969",
-      name: "Ford1969",
+      name: "Shelby GT350",
       model: "1969",
       engine: "V8",
       speed: "200mph",
@@ -134,7 +134,7 @@ export default function Dashboard() {
     {
       component: Mustang2005,
       componentName: "Mustang2005",
-      name: "1970 Ford ",
+      name: "Mach 1 ",
       model: "1970",
       engine: "V12",
       speed: "200mph",

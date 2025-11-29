@@ -4,6 +4,8 @@ import {
   Environment,
   ContactShadows,
   OrbitControls as DreiOrbitControls,
+  useGLTF,
+  Center,
 } from "@react-three/drei";
 import { ChevronDown, ArrowLeft, Loader } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -14,32 +16,61 @@ import EngineDetailView from "../Learn/EngineDetail/EngineDetailView";
 import BrakeDetailView from "../Learn/BrakeDetail/BrakeDetailView";
 import logoGif from "../assets/wheelwithwings.gif";
 
+// GLB Model Components
+function FordMustangBoss1969() {
+  const { scene } = useGLTF('/ford_mustang_boss_1969.glb');
+  return <primitive object={scene} />;
+}
+
+function Mustang2005() {
+  const { scene } = useGLTF('/mustang2005.glb');
+  return (
+    <Center>
+      <primitive object={scene} />
+    </Center>
+  );
+}
+
 const CAR_INFO = {
   Car: {
-    name: "Classic Car",
+    name: "Hardtop",
     model: "1965",
     engine: "V6",
     speed: "150mph",
     brake: "BRAKE1",
-    description:
-      "A timeless classic with balanced performance and vintage charm.",
+    description: "A timeless classic with balanced performance and vintage charm.",
   },
   Gt: {
-    name: "GT Sports",
+    name: "GT Fastback",
     model: "1967",
     engine: "V7",
     speed: "180mph",
     brake: "BRAKE1",
-    description:
-      "Aggressive styling with enhanced power and track-ready dynamics.",
+    description: "Aggressive styling with enhanced power and track-ready dynamics.",
   },
   Mustang1968: {
-    name: "Mustang 1968",
+    name: "SportsRoof",
     model: "1968",
     engine: "V8",
     speed: "190mph",
     brake: "BRAKE1",
     description: "American muscle icon with roaring V8 and iconic design.",
+  },
+  FordMustangBoss1969: {
+    name: "Shelby GT350",
+    model: "1969",
+    engine: "V8",
+    speed: "200mph",
+    brake: "BRAKE1",
+    description: "Legendary Shelby performance with race-bred engineering.",
+  },
+  Mustang2005: {
+    name: "Mach 1",
+    model: "1970",
+    engine: "V12",
+    speed: "200mph",
+    brake: "BRAKE1",
+    description: "Ultimate power with V12 performance and modern styling.",
   },
 };
 
@@ -47,6 +78,8 @@ const CAR_COMPONENTS = {
   Car,
   Gt,
   Mustang1968,
+  FordMustangBoss1969,
+  Mustang2005,
 };
 
 const CarScene = ({ carKey, selectedPart }) => {
@@ -79,7 +112,7 @@ const CarScene = ({ carKey, selectedPart }) => {
         position={[5, 8, 5]}
         intensity={2.2}
         castShadow
-        shadowMapSize={[2048, 2048]}
+        shadow-mapSize={[2048, 2048]}
       />
       <directionalLight position={[-5, 3, -5]} intensity={1} color="#4a90ff" />
       <directionalLight position={[0, 2, -8]} intensity={1} color="#b190f6" />
@@ -126,7 +159,7 @@ const CarScene = ({ carKey, selectedPart }) => {
         minDistance={selectedPart ? 1.5 : 3}
         maxDistance={
           selectedPart
-            ? ["V7", "V8"].includes(carInfo.engine)
+            ? ["V7", "V8", "V12"].includes(carInfo.engine)
               ? 100
               : 20
             : 12
@@ -261,7 +294,7 @@ const Comparison = () => {
 
   const fetchPartInsight = async (carKey, part) => {
     try {
-      const res = await fetch("http://127.0.0.1:5000/part-insight", {
+      const res = await fetch("http://127.0.0.1:5000/api/part-insight", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ carKey, part }),
@@ -484,7 +517,7 @@ const Comparison = () => {
           />
         </div>
 
-        {/* AI Insights Grid — dynamically shows full car or part-specific */}
+        {/* AI Insights Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-4 h-[450px]">
           <AIInsightBox
             title={selectedPart ? `${CAR_INFO[carA]?.name || "Car A"} - ${selectedPart.charAt(0).toUpperCase() + selectedPart.slice(1)}` : "Car A AI Insight"}

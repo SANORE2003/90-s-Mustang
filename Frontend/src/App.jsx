@@ -6,7 +6,7 @@ import AboutCar from "./main/AboutCar";
 import Learn from "./main/Learn";
 import Dashboard from "./Content/Dashboard";
 import Speedometer from "./Content/Speedometer";
-import SharedCar from "./main/SharedCar"; // ✅ SharedCar now handles overlay internally
+import SharedCar from "./main/SharedCar"; 
 import Parts from "./Learn/Parts";
 import Comparison from "./Comparison/Comparison";
 

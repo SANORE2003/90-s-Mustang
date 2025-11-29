@@ -117,14 +117,71 @@ export default function Home() {
         <div className="absolute inset-0 bg-gradient-to-bl from-transparent via-purple-500/10 to-transparent" />
       </div>
 
+      {/* Stylish Title Box - Enhanced */}
+      <div className="absolute top-10 left-[28%] -translate-x-1/2 z-30">
+        <div className="relative group">
+          {/* Outer animated glow ring */}
+          <div
+            className="absolute -inset-4 bg-gradient-to-r from-blue-600 via-purple-600 to-blue-600 
+    opacity-70 blur-2xl rounded-3xl animate-pulse group-hover:opacity-100 transition-all"
+          ></div>
+
+          {/* Glass Panel */}
+          <div
+            className="relative px-16 py-8 rounded-2xl backdrop-blur-xl 
+    bg-gradient-to-br from-slate-900/80 via-blue-900/30 to-slate-900/80
+    border border-blue-400/40 shadow-[0_0_25px_rgba(59,130,246,0.4)]
+    group-hover:scale-105 transition-all duration-300"
+          >
+            {/* Futuristic corner brackets */}
+            <div className="absolute -top-1 -left-1 w-10 h-10 border-t-4 border-l-4 border-blue-500 rounded-tl-xl"></div>
+            <div className="absolute -top-1 -right-1 w-10 h-10 border-t-4 border-r-4 border-purple-500 rounded-tr-xl"></div>
+            <div className="absolute -bottom-1 -left-1 w-10 h-10 border-b-4 border-l-4 border-purple-500 rounded-bl-xl"></div>
+            <div className="absolute -bottom-1 -right-1 w-10 h-10 border-b-4 border-r-4 border-blue-500 rounded-br-xl"></div>
+
+            {/* Title text */}
+            <h1
+              className="text-6xl font-extrabold tracking-wide bg-gradient-to-r 
+      from-blue-400 via-white to-purple-400 bg-clip-text text-transparent
+      animate-shimmer drop-shadow-[0_5px_20px_rgba(255,255,255,0.3)]"
+            >
+              MUSTANG GARAGE
+            </h1>
+
+            {/* Animated underline */}
+            <div
+              className="mt-4 h-1 w-full bg-gradient-to-r from-blue-400 via-purple-400 to-blue-400 
+      rounded-full animate-pulse"
+            ></div>
+          </div>
+        </div>
+
+        {/* Shimmer keyframes */}
+        <style jsx>{`
+          @keyframes shimmer {
+            0% {
+              background-position: 0% 50%;
+            }
+            100% {
+              background-position: 200% 50%;
+            }
+          }
+          .animate-shimmer {
+            background-size: 200% auto;
+            animation: shimmer 3s linear infinite;
+          }
+        `}</style>
+      </div>
+
+      {/* Top-right logo */}
+      <img
+        src={logoGif}
+        alt="Mustang Logo"
+        className="absolute top-2 right-8 w-40 h-40 object-contain z-30 drop-shadow-[0_0_20px_rgba(59,130,246,0.8)] hover:scale-125 transition-transform duration-500"
+      />
+
       {/* Main layout */}
-      <div className="absolute inset-0 z-20 flex flex-col md:flex-row items-center justify-between px-12 md:px-24 py-12 gap-12">
-        {/* Top-right logo — now correctly positioned relative to the whole screen */}
-        <img
-          src={logoGif}
-          alt="Mustang Logo"
-          className="absolute top-2 right-8 w-40 h-40 object-contain z-30 drop-shadow-[0_0_20px_rgba(59,130,246,0.8)] hover:scale-125 transition-transform duration-500"
-        />
+      <div className="absolute inset-0 z-20 flex flex-col md:flex-row items-center justify-between px-12 md:px-24 py-12 gap-12 mt-32">
         {/* Auth Panel */}
         <div className="w-full max-w-md backdrop-blur-xl bg-slate-900/40 rounded-2xl border border-blue-500/20 shadow-2xl p-8">
           {/* Logo text */}
@@ -341,6 +398,22 @@ export default function Home() {
           <div className="absolute bottom-4 right-4 w-3 h-3 bg-purple-400 rounded-full animate-bounce-slow"></div>
         </div>
       </div>
+
+      <style jsx>{`
+        @keyframes shimmer {
+          0%,
+          100% {
+            background-position: 0% 50%;
+          }
+          50% {
+            background-position: 100% 50%;
+          }
+        }
+        .animate-shimmer {
+          background-size: 200% auto;
+          animation: shimmer 3s linear infinite;
+        }
+      `}</style>
     </div>
   );
 }

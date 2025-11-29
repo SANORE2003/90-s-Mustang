@@ -27,7 +27,7 @@ model = genai.GenerativeModel(
 
 # In your Flask blueprint file
 
-@compare_bp.route("/api/part-insight", methods=["POST"])
+@compare_bp.route("/part-insight", methods=["POST"])
 def get_part_insight():
     """
     Accepts JSON: { "carKey": "Mustang1968", "part": "engine" }
