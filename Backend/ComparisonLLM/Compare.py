@@ -45,6 +45,8 @@ def get_part_insight():
         "Car": {"name": "Classic Car", "model": "1965", "engine": "V6", "brake": "BRAKE1"},
         "Gt": {"name": "GT Sports", "model": "1967", "engine": "V7", "brake": "BRAKE1"},
         "Mustang1968": {"name": "Mustang 1968", "model": "1968", "engine": "V8", "brake": "BRAKE1"},
+        "FordMustangBoss1969": {"name": "Shelby GT350", "model": "1969", "engine": "V8", "brake": "BRAKE1"},
+        "Mustang2005": {"name": "Mach 1  ", "model": "1970", "engine": "V12", "brake": "BRAKE1"},
     }
 
     if car_key not in CAR_INFO:
